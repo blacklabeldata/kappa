@@ -12,7 +12,7 @@ import (
     "github.com/spf13/cobra"
     "github.com/spf13/viper"
 
-    "github.com/subsilent/kappa/auth"
+    "github.com/blacklabeldata/kappa/auth"
 )
 
 // NewCertCmd is the kappa root command.

@@ -7,12 +7,12 @@ import (
 	"os/signal"
 	"path"
 
+	"github.com/blacklabeldata/kappa/auth"
+	"github.com/blacklabeldata/kappa/datamodel"
+	"github.com/blacklabeldata/kappa/ssh"
 	log "github.com/mgutz/logxi/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/subsilent/kappa/auth"
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/ssh"
 )
 
 // ServerCmd is the kappa root command.

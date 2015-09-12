@@ -3,7 +3,7 @@ package main
 import (
 	"runtime"
 
-	"github.com/subsilent/kappa/commands"
+	"github.com/blacklabeldata/kappa/commands"
 )
 
 func main() {
