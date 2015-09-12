@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/subsilent/kappa/common"
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/skl"
+	"github.com/blacklabeldata/kappa/common"
+	"github.com/blacklabeldata/kappa/datamodel"
+	"github.com/blacklabeldata/kappa/skl"
 )
 
 func NewSession(ns string, user datamodel.User) Session {

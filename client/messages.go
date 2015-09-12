@@ -5,7 +5,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/subsilent/kappa/common"
+	"github.com/blacklabeldata/kappa/common"
 )
 
 type Message interface {

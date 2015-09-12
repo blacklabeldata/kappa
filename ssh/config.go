@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/blacklabeldata/kappa/datamodel"
+	"github.com/blacklabeldata/kappa/ssh/handlers"
 	log "github.com/mgutz/logxi/v1"
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/ssh/handlers"
 	"golang.org/x/crypto/ssh"
 )
 

@@ -6,11 +6,11 @@ import (
 
 	log "github.com/mgutz/logxi/v1"
 
-	"github.com/subsilent/kappa/client"
-	"github.com/subsilent/kappa/common"
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/executor"
-	"github.com/subsilent/kappa/skl"
+	"github.com/blacklabeldata/kappa/client"
+	"github.com/blacklabeldata/kappa/common"
+	"github.com/blacklabeldata/kappa/datamodel"
+	"github.com/blacklabeldata/kappa/executor"
+	"github.com/blacklabeldata/kappa/skl"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 	tomb "gopkg.in/tomb.v2"
