@@ -67,7 +67,7 @@ detail:
 	@echo "------------------"
 	@echo " detailed report"
 	@echo "------------------"
-	@gocov test | gocov report
+	@gocov convert $(CWD)/coverage.out | gocov report
 
 report: test detail html
 
