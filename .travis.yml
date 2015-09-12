@@ -13,5 +13,3 @@ before_install:
   - godep restore
 script:
     - make test
-    - make detail
-    - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
