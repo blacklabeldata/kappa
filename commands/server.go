@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"time"
 
 	"github.com/blacklabeldata/kappa/auth"
 	"github.com/blacklabeldata/kappa/datamodel"
@@ -111,15 +112,21 @@ var ServerCmd = &cobra.Command{
 
 		// Setup SSH Server
 		sshLogger := log.NewLogger(writer, "ssh")
-		sshServer, err := ssh.NewSSHServer(sshLogger, system, privateKey, roots)
+		config := ssh.Config{
+			Deadline:   time.Second,
+			Logger:     sshLogger,
+			Bind:       ":9022",
+			PrivateKey: privateKey,
+			System:     system,
+		}
+		sshServer, err := ssh.NewSSHServer(&config)
 		if err != nil {
 			logger.Error("SSH Server could not be configured", "error", err.Error())
 			return
 		}
 
-		// Setup signal structures
-		closer := make(chan bool)
-		sshServer.Run(logger, closer)
+		// Start servers
+		sshServer.Start()
 
 		// Handle signals
 		sig := make(chan os.Signal, 1)
@@ -133,8 +140,7 @@ var ServerCmd = &cobra.Command{
 
 		// Shut down SSH server
 		logger.Info("Shutting down servers.")
-		sshServer.Wait()
-		<-closer
+		sshServer.Stop()
 	},
 }
 

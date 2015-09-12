@@ -20,7 +20,7 @@ test: **/*.go
 	@echo "------------------"
 	@echo " test"
 	@echo "------------------"
-	@godep go test -coverprofile=$(CWD)/coverage.out
+	@godep go test ./...
 
 deps:
 	@echo "------------------"
@@ -67,7 +67,7 @@ detail:
 	@echo "------------------"
 	@echo " detailed report"
 	@echo "------------------"
-	@gocov convert $(CWD)/coverage.out | gocov report
+	@gocov test ./... | gocov report
 
 report: test detail html
 
