@@ -112,13 +112,22 @@ var ServerCmd = &cobra.Command{
 
 		// Setup SSH Server
 		sshLogger := log.NewLogger(writer, "ssh")
-		config := ssh.Config{
-			Deadline:   time.Second,
-			Logger:     sshLogger,
-			Bind:       ":9022",
-			PrivateKey: privateKey,
-			System:     system,
+		pubKeyCallback, err := datamodel.PublicKeyCallback(system)
+		if err != nil {
+			logger.Error("failed to create PublicKeyCallback", err)
+			return
 		}
+
+		// Setup server config
+		config := ssh.Config{
+			Deadline:          time.Second,
+			Logger:            sshLogger,
+			Bind:              ":9022",
+			PrivateKey:        privateKey,
+			PublicKeyCallback: pubKeyCallback,
+		}
+
+		// Create SSH server
 		sshServer, err := ssh.NewSSHServer(&config)
 		if err != nil {
 			logger.Error("SSH Server could not be configured", "error", err.Error())
@@ -137,6 +146,10 @@ var ServerCmd = &cobra.Command{
 
 		// Block until signal is received
 		<-sig
+
+		// Stop listening for signals and close channel
+		signal.Stop(sig)
+		close(sig)
 
 		// Shut down SSH server
 		logger.Info("Shutting down servers.")

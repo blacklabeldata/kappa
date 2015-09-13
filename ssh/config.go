@@ -1,12 +1,9 @@
 package ssh
 
 import (
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
-	"github.com/blacklabeldata/kappa/datamodel"
 	"github.com/blacklabeldata/kappa/ssh/handlers"
 	log "github.com/mgutz/logxi/v1"
 	"golang.org/x/crypto/ssh"
@@ -34,57 +31,38 @@ type Config struct {
 	// PrivateKey is added to the SSH config as a host key
 	PrivateKey ssh.Signer
 
+	// AuthLogCallback, if non-nil, is called to log all authentication
+	// attempts.
+	AuthLogCallback func(conn ssh.ConnMetadata, method string, err error)
+
+	// PasswordCallback, if non-nil, is called when a user
+	// attempts to authenticate using a password.
+	PasswordCallback func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error)
+
 	// System is the System datamodel
-	System datamodel.System
+	PublicKeyCallback func(ssh.ConnMetadata, ssh.PublicKey) (*ssh.Permissions, error)
 
 	// sshConfig is used to verify incoming connections
 	sshConfig *ssh.ServerConfig
 }
 
 func (c *Config) SSHConfig() (*ssh.ServerConfig, error) {
-	if c.System == nil {
-		return &ssh.ServerConfig{}, errors.New("ssh server: System cannot be nil")
-	}
 
-	// Get user store
-	users, err := c.System.Users()
-	if err != nil {
-		return &ssh.ServerConfig{}, fmt.Errorf("ssh server: user store: %s", err)
+	// Set a default auth log function
+	if c.AuthLogCallback == nil {
+		c.AuthLogCallback = func(conn ssh.ConnMetadata, method string, err error) {
+			if err == nil {
+				c.Logger.Info("Successful login", "user", conn.User(), "method", method)
+			}
+		}
 	}
 
 	// Create server config
 	sshConfig := &ssh.ServerConfig{
-		NoClientAuth: false,
-		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (perm *ssh.Permissions, err error) {
-
-			// Get user if exists, otherwise return error
-			user, err := users.Get(conn.User())
-			if err != nil {
-				return
-			}
-
-			// Check keyring for public key
-			if keyring := user.KeyRing(); !keyring.Contains(key.Marshal()) {
-				err = fmt.Errorf("invalid public key")
-				return
-			}
-
-			// Add pubkey and username to permissions
-			perm = &ssh.Permissions{
-				Extensions: map[string]string{
-					"pubkey":   string(key.Marshal()),
-					"username": conn.User(),
-				},
-			}
-			return
-		},
-		AuthLogCallback: func(conn ssh.ConnMetadata, method string, err error) {
-			if err != nil {
-				c.Logger.Info("Login attempt", "user", conn.User(), "method", method, "error", err.Error())
-			} else {
-				c.Logger.Info("Successful login", "user", conn.User(), "method", method)
-			}
-		},
+		NoClientAuth:      false,
+		PasswordCallback:  c.PasswordCallback,
+		PublicKeyCallback: c.PublicKeyCallback,
+		AuthLogCallback:   c.AuthLogCallback,
 	}
 	sshConfig.AddHostKey(c.PrivateKey)
 	return sshConfig, nil
