@@ -47,6 +47,7 @@ func NewSSHServer(cfg *Config) (server SSHServer, err error) {
 		return
 	}
 	server.listener = listener
+	server.config = cfg
 	return
 }
 
@@ -72,40 +73,43 @@ func (s *SSHServer) listen() error {
 
 	// Create tomb for connection goroutines
 	var t tomb.Tomb
+	t.Go(func() error {
+	OUTER:
+		for {
 
-	for {
+			// Accepts will only block for 1s
+			s.listener.SetDeadline(time.Now().Add(s.config.Deadline))
 
-		// Accepts will only block for 1s
-		s.listener.SetDeadline(time.Now().Add(s.config.Deadline))
+			select {
 
-		select {
+			// Stop server on channel receive
+			case <-s.t.Dying():
+				t.Kill(nil)
+				break OUTER
+			default:
 
-		// Stop server on channel receive
-		case <-s.t.Dying():
-			t.Kill(nil)
-			t.Wait()
-			return nil
-		default:
-
-			// Accept new connection
-			tcpConn, err := s.listener.Accept()
-			if err != nil {
-				if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
-					s.config.Logger.Trace("Connection timeout...")
-				} else {
-					s.config.Logger.Warn("Connection failed", "error", err)
+				// Accept new connection
+				tcpConn, err := s.listener.Accept()
+				if err != nil {
+					if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
+						s.config.Logger.Trace("Connection timeout...")
+					} else {
+						s.config.Logger.Warn("Connection failed", "error", err)
+					}
+					continue
 				}
-				continue
-			}
 
-			// Handle connection
-			s.config.Logger.Debug("Successful TCP connection: %s", tcpConn.RemoteAddr())
-			t.Go(func() error {
-				return s.handleTCPConnection(t, tcpConn)
-			})
+				// Handle connection
+				s.config.Logger.Debug("Successful TCP connection:", tcpConn.RemoteAddr().String())
+				t.Go(func() error {
+					return s.handleTCPConnection(t, tcpConn)
+				})
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+
+	return t.Wait()
 }
 
 func (s *SSHServer) handleTCPConnection(parentTomb tomb.Tomb, conn net.Conn) error {
@@ -113,13 +117,14 @@ func (s *SSHServer) handleTCPConnection(parentTomb tomb.Tomb, conn net.Conn) err
 	// Convert to SSH connection
 	sshConn, channels, requests, err := ssh.NewServerConn(conn, s.config.sshConfig)
 	if err != nil {
-		s.config.Logger.Warn("SSH handshake failed: %s", conn.RemoteAddr())
+		s.config.Logger.Warn("SSH handshake failed:", "addr", conn.RemoteAddr().String(), "error", err)
 		return err
 	}
 
 	// Close connection on exit
 	s.config.Logger.Debug("Handshake successful")
-	defer sshConn.Conn.Close()
+	defer sshConn.Close()
+	defer sshConn.Wait()
 
 	// Discard requests
 	go ssh.DiscardRequests(requests)
@@ -127,37 +132,47 @@ func (s *SSHServer) handleTCPConnection(parentTomb tomb.Tomb, conn net.Conn) err
 	// Create new tomb stone
 	var t tomb.Tomb
 
-	for {
-		select {
-		case ch := <-channels:
-			chType := ch.ChannelType()
+	t.Go(func() error {
+	OUTER:
+		for {
+			select {
+			case ch := <-channels:
 
-			// Determine if channel is acceptable (has a registered handler)
-			handler, ok := s.config.Handler(chType)
-			if !ok {
-				s.config.Logger.Info("UnknownChannelType", "type", chType)
-				ch.Reject(ssh.UnknownChannelType, chType)
-				break
-			}
+				// Check if chan was closed
+				if ch == nil {
+					t.Kill(nil)
+					break OUTER
+				}
 
-			// Accept channel
-			channel, requests, err := ch.Accept()
-			if err != nil {
-				s.config.Logger.Warn("Error creating channel")
-				continue
-			}
+				// Get channel type
+				chType := ch.ChannelType()
 
-			t.Go(func() error {
-				return handler.Handle(t, sshConn, channel, requests)
-			})
-		case <-parentTomb.Dying():
-			t.Kill(nil)
-			if err := t.Wait(); err != nil {
-				s.config.Logger.Warn("ssh handler error: %s", err)
+				// Determine if channel is acceptable (has a registered handler)
+				handler, ok := s.config.Handler(chType)
+				if !ok {
+					s.config.Logger.Info("UnknownChannelType", "type", chType)
+					ch.Reject(ssh.UnknownChannelType, chType)
+					break OUTER
+				}
+
+				// Accept channel
+				channel, requests, err := ch.Accept()
+				if err != nil {
+					s.config.Logger.Warn("Error creating channel")
+					continue
+				}
+
+				t.Go(func() error {
+					return handler.Handle(t, sshConn, channel, requests)
+				})
+			case <-parentTomb.Dying():
+				t.Kill(nil)
+				break OUTER
 			}
-			sshConn.Close()
-			return sshConn.Wait()
 		}
-	}
-	return nil
+		return nil
+	})
+
+	// Wait for all goroutines to finish
+	return t.Wait()
 }
