@@ -31,6 +31,14 @@ type Config struct {
 	// PrivateKey is added to the SSH config as a host key
 	PrivateKey ssh.Signer
 
+	// AuthLogCallback, if non-nil, is called to log all authentication
+	// attempts.
+	AuthLogCallback func(conn ssh.ConnMetadata, method string, err error)
+
+	// PasswordCallback, if non-nil, is called when a user
+	// attempts to authenticate using a password.
+	PasswordCallback func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error)
+
 	// System is the System datamodel
 	PublicKeyCallback func(ssh.ConnMetadata, ssh.PublicKey) (*ssh.Permissions, error)
 
@@ -40,15 +48,21 @@ type Config struct {
 
 func (c *Config) SSHConfig() (*ssh.ServerConfig, error) {
 
-	// Create server config
-	sshConfig := &ssh.ServerConfig{
-		NoClientAuth:      false,
-		PublicKeyCallback: c.PublicKeyCallback,
-		AuthLogCallback: func(conn ssh.ConnMetadata, method string, err error) {
+	// Set a default auth log function
+	if c.AuthLogCallback == nil {
+		c.AuthLogCallback = func(conn ssh.ConnMetadata, method string, err error) {
 			if err == nil {
 				c.Logger.Info("Successful login", "user", conn.User(), "method", method)
 			}
-		},
+		}
+	}
+
+	// Create server config
+	sshConfig := &ssh.ServerConfig{
+		NoClientAuth:      false,
+		PasswordCallback:  c.PasswordCallback,
+		PublicKeyCallback: c.PublicKeyCallback,
+		AuthLogCallback:   c.AuthLogCallback,
 	}
 	sshConfig.AddHostKey(c.PrivateKey)
 	return sshConfig, nil
