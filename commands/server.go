@@ -10,10 +10,11 @@ import (
 
 	"github.com/blacklabeldata/kappa/auth"
 	"github.com/blacklabeldata/kappa/datamodel"
-	"github.com/blacklabeldata/kappa/ssh"
+	"github.com/blacklabeldata/sshh"
 	log "github.com/mgutz/logxi/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh"
 )
 
 // ServerCmd is the kappa root command.
@@ -119,16 +120,23 @@ var ServerCmd = &cobra.Command{
 		}
 
 		// Setup server config
-		config := ssh.Config{
+		config := sshh.Config{
 			Deadline:          time.Second,
 			Logger:            sshLogger,
 			Bind:              ":9022",
 			PrivateKey:        privateKey,
 			PublicKeyCallback: pubKeyCallback,
+			AuthLogCallback: func(meta ssh.ConnMetadata, method string, err error) {
+				if err == nil {
+					sshLogger.Info("login success", "user", meta.User())
+				} else if err != nil && method == "publickey" {
+					sshLogger.Info("login failure", "user", meta.User(), "err", err)
+				}
+			},
 		}
 
 		// Create SSH server
-		sshServer, err := ssh.NewSSHServer(&config)
+		sshServer, err := sshh.NewSSHServer(&config)
 		if err != nil {
 			logger.Error("SSH Server could not be configured", "error", err.Error())
 			return
