@@ -1,11 +1,18 @@
 {
 	"ImportPath": "github.com/blacklabeldata/kappa",
 	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/blacklabeldata/sshh",
+			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
@@ -77,6 +84,14 @@
 		{
 			"ImportPath": "github.com/spf13/viper",
 			"Rev": "be5ff3e4840cf692388bde7a057595a474ef379e"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/suite",
+			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
