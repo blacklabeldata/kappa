@@ -13,9 +13,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/eliquious/xbinary"
-	"github.com/subsilent/kappa/skl"
-	server "github.com/subsilent/kappa/ssh"
+	cli "github.com/blacklabeldata/kappa/client"
+	"github.com/blacklabeldata/kappa/common"
+	"github.com/blacklabeldata/kappa/skl"
+	"github.com/blacklabeldata/xbinary"
 	"golang.org/x/crypto/ssh"
 	// "golang.org/x/crypto/ssh/terminal"
 	"github.com/subsilent/crypto/ssh/terminal"
@@ -36,27 +37,6 @@ var ClientCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-
-		// // Create data directory
-		// if err := os.MkdirAll(viper.GetString("DataPath"), os.ModeDir|0655); err != nil {
-		// 	logger.Warn("Could not create data directory", "err", err.Error())
-		// 	return
-		// }
-
-		// // Connect to database
-		// cwd, err := os.Getwd()
-		// if err != nil {
-		// 	logger.Error("Could not get working directory", "error", err.Error())
-		// 	return
-		// }
-
-		// file := path.Join(cwd, viper.GetString("DataPath"), "meta.db")
-		// logger.Info("Connecting to database", "file", file)
-		// system, err := datamodel.NewSystem(file)
-		// if err != nil {
-		// 	logger.Error("Could not connect to database", "error", err.Error())
-		// 	return
-		// }
 
 		// Get SSH Key file
 		keyFile := viper.GetString("ClientKey")
@@ -138,7 +118,7 @@ var ClientCmd = &cobra.Command{
 		history := History{entries, make([]string, 0)}
 
 		// Create terminal
-		term := terminal.NewTerminal(os.Stdin, string(server.DefaultColorCodes.Cyan)+"kappa > "+string(server.DefaultColorCodes.Reset))
+		term := terminal.NewTerminal(os.Stdin, string(common.DefaultColorCodes.LightBlue)+"kappa > "+string(common.DefaultColorCodes.Reset))
 		term.LoadInitialHistory(entries)
 
 		// Try to make the terminal raw
@@ -150,14 +130,14 @@ var ClientCmd = &cobra.Command{
 
 		// Write ascii text
 		term.Write([]byte("\r\n"))
-		for _, line := range server.ASCII {
+		for _, line := range common.ASCII {
 			term.Write([]byte(line))
 			term.Write([]byte("\r\n"))
 		}
 
 		// Write login message
 		term.Write([]byte("\r\n\n"))
-		server.GetMessage(term, server.DefaultColorCodes)
+		cli.GetMessage(term, common.DefaultColorCodes)
 		term.Write([]byte("\n"))
 
 		// Start REPL
@@ -185,9 +165,9 @@ var ClientCmd = &cobra.Command{
 					continue
 				} else if strings.HasPrefix(line, "//") || strings.HasPrefix(line, "--") {
 
-					term.Write(server.DefaultColorCodes.LightGrey)
+					term.Write(common.DefaultColorCodes.LightGrey)
 					term.Write([]byte(line + "\r\n"))
-					term.Write(server.DefaultColorCodes.Reset)
+					term.Write(common.DefaultColorCodes.Reset)
 					continue
 				}
 
@@ -196,15 +176,15 @@ var ClientCmd = &cobra.Command{
 
 				// Return parse error in red
 				if err != nil {
-					term.Write(server.DefaultColorCodes.LightRed)
+					term.Write(common.DefaultColorCodes.LightRed)
 					term.Write([]byte(" " + err.Error()))
 					term.Write([]byte("\r\n"))
-					term.Write(server.DefaultColorCodes.Reset)
+					term.Write(common.DefaultColorCodes.Reset)
 					term.RemoveLastLine()
 					continue
 				}
 
-				w := server.ResponseWriter{server.DefaultColorCodes, term}
+				w := common.ResponseWriter{common.DefaultColorCodes, term}
 
 				length := make([]byte, 4)
 				xbinary.LittleEndian.PutInt32(length, 0, int32(len(line)))
@@ -213,9 +193,9 @@ var ClientCmd = &cobra.Command{
 				channel.Write(length)
 				channel.Write([]byte(line))
 
-				term.Write(server.DefaultColorCodes.LightBlue)
-				term.Write([]byte(fmt.Sprintf("%d : '%s'\r\n", length, line)))
-				term.Write(server.DefaultColorCodes.Reset)
+				// term.Write(common.DefaultColorCodes.LightBlue)
+				// term.Write([]byte(fmt.Sprintf("%d : '%s'\r\n", length, line)))
+				// term.Write(common.DefaultColorCodes.Reset)
 
 				channel.Read(length)
 
@@ -223,17 +203,17 @@ var ClientCmd = &cobra.Command{
 				data := make([]byte, int(size))
 				channel.Read(data)
 
-				term.Write(server.DefaultColorCodes.Green)
-				term.Write([]byte(fmt.Sprintf("%d : '%s'\r\n", length, string(data))))
-				term.Write(server.DefaultColorCodes.Reset)
+				// term.Write(common.DefaultColorCodes.Green)
+				// term.Write([]byte(fmt.Sprintf("%d : '%s'\r\n", length, string(data))))
+				// term.Write(common.DefaultColorCodes.Reset)
 				// if err != nil {
-				// 	w.Fail(server.InternalServerError, err.Error())
+				// 	w.Fail(common.InternalServerError, err.Error())
 				// }
 				// channel.SendRequest("skl", true, []byte(line))
 
 				// Execute statements
-				w.Success(server.OK, string(data))
-				w.Success(server.OK, stmt.String())
+				// w.Success(common.OK, string(data))
+				w.Success(common.OK, stmt.String())
 				// executor.Execute(&w, stmt)
 
 				// Write line to history file
@@ -243,11 +223,11 @@ var ClientCmd = &cobra.Command{
 		}
 
 		history.WriteToFile(historyPath)
-		os.Stdout.Write(server.DefaultColorCodes.LightGreen)
+		os.Stdout.Write(common.DefaultColorCodes.LightGreen)
 		os.Stdout.Write([]byte("\r\n"))
 		os.Stdout.Write([]byte(" Yo homes, smell you later!"))
 		os.Stdout.Write([]byte("\r\n"))
-		os.Stdout.Write(server.DefaultColorCodes.Reset)
+		os.Stdout.Write(common.DefaultColorCodes.Reset)
 	},
 }
 
