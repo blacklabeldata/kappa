@@ -122,6 +122,9 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 				sshLogger.Info("login failure", "user", meta.User(), "err", err.Error())
 			}
 		},
+		Handlers: map[string]sshh.SSHHandler{
+			"kappa-client": &EchoHandler{},
+		},
 	}
 
 	// Create SSH server

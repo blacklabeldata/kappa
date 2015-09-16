@@ -33,6 +33,7 @@ func AddCommands() {
 	KappaCmd.AddCommand(ServerCmd)
 	KappaCmd.AddCommand(InitCACmd)
 	KappaCmd.AddCommand(NewCertCmd)
+	KappaCmd.AddCommand(ClientCmd)
 }
 
 // Command line args
