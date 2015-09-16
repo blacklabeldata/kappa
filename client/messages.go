@@ -1,20 +1,22 @@
-package ssh
+package client
 
 import (
 	"crypto/rand"
 	"io"
 	"math/big"
+
+	"github.com/blacklabeldata/kappa/common"
 )
 
 type Message interface {
-	Write(w io.Writer, colors ColorCodes)
+	Write(w io.Writer, colors common.ColorCodes)
 }
 
 type SimpleMessage struct {
 	Text string
 }
 
-func (s SimpleMessage) Write(w io.Writer, colors ColorCodes) {
+func (s SimpleMessage) Write(w io.Writer, colors common.ColorCodes) {
 	w.Write([]byte(" " + s.Text + "\r\n"))
 }
 
@@ -25,7 +27,7 @@ type Quote struct {
 	Text   string
 }
 
-func (q Quote) Write(w io.Writer, colors ColorCodes) {
+func (q Quote) Write(w io.Writer, colors common.ColorCodes) {
 	w.Write(q.Color)
 	w.Write([]byte(" " + q.Author))
 	w.Write(colors.Reset)
@@ -39,7 +41,7 @@ type Conversation struct {
 }
 
 // Write actually writes the message to the terminal
-func (c Conversation) Write(w io.Writer, colors ColorCodes) {
+func (c Conversation) Write(w io.Writer, colors common.ColorCodes) {
 	for _, q := range c.Quotes {
 		q.Write(w, colors)
 	}
@@ -47,7 +49,7 @@ func (c Conversation) Write(w io.Writer, colors ColorCodes) {
 }
 
 // LoginMessage writes a message at login
-func GetMessage(w io.Writer, colors ColorCodes) {
+func GetMessage(w io.Writer, colors common.ColorCodes) {
 	var messages = []Message{
 		SimpleMessage{"Welcome to Kappa DB, Yo!"},
 		Quote{colors.LightMagenta, "Jessy Pinkman", "Yeah, Bitch! Magnets!"},

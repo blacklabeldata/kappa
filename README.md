@@ -14,7 +14,7 @@ go get github.com/tools/godep
 Next, we need to actually install the code and dependencies:
 
 ```
-godep get github.com/subsilent/kappa
+godep get github.com/blacklabeldata/kappa
 ```
 
 Finally we can build the code:
@@ -42,7 +42,7 @@ This will generate a certificate authority, a private for the SSH server and an 
 ####  Generate another certificate
 
 ```
-# ./kappa new-cert --name=<CERT NAME> 
+# ./kappa new-cert --name=<CERT NAME>
 ```
 
 ## Running Kappa
@@ -58,6 +58,6 @@ $ make run
 Command line access is through ssh and using the admin key we generated earlier in setup:
 
 ```
-$ chmod 600 pki/private/admin.key 
+$ chmod 600 pki/private/admin.key
 $ ssh -i pki/private/admin.key admin@127.0.0.1 -p 9022
 ```

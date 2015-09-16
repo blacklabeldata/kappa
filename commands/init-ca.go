@@ -8,10 +8,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/blacklabeldata/kappa/auth"
 	log "github.com/mgutz/logxi/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/subsilent/kappa/auth"
 )
 
 // InitCACmd is the kappa root command.

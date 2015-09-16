@@ -22,7 +22,7 @@ import (
     log "github.com/mgutz/logxi/v1"
     "github.com/stretchr/testify/suite"
 
-    "github.com/subsilent/kappa/auth"
+    "github.com/blacklabeldata/kappa/auth"
     "golang.org/x/crypto/ssh"
 )
 

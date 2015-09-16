@@ -1,13 +1,22 @@
-package ssh
+package executor
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/skl"
+	"github.com/blacklabeldata/kappa/common"
+	"github.com/blacklabeldata/kappa/datamodel"
+	"github.com/blacklabeldata/kappa/skl"
 )
+
+func NewSession(ns string, user datamodel.User) Session {
+	return Session{ns, user}
+}
+
+func NewExecutor(session Session, term common.Terminal, sys datamodel.System) *Executor {
+	return &Executor{session, term, sys}
+}
 
 // Session provides session and connection related information
 type Session struct {
@@ -18,16 +27,16 @@ type Session struct {
 // Executor executes successfully parsed queries
 type Executor struct {
 	session  Session
-	terminal Terminal
+	terminal common.Terminal
 	system   datamodel.System
 }
 
 // Execute processes each statement
-func (e *Executor) Execute(w *ResponseWriter, stmt skl.Statement) {
+func (e *Executor) Execute(w *common.ResponseWriter, stmt skl.Statement) {
 
 	// Verify session has a user
 	if e.session.user == nil {
-		w.Fail(InternalServerError, "could not determine session user")
+		w.Fail(common.InternalServerError, "could not determine session user")
 		return
 	}
 
@@ -41,10 +50,10 @@ func (e *Executor) Execute(w *ResponseWriter, stmt skl.Statement) {
 	}
 }
 
-func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
+func (e *Executor) handleUseStatement(w *common.ResponseWriter, stmt skl.Statement) {
 	use, ok := stmt.(*skl.UseStatement)
 	if !ok {
-		w.Fail(InvalidStatementType, "expected *UseStatement, got %s instead", reflect.TypeOf(stmt))
+		w.Fail(common.InvalidStatementType, "expected *UseStatement, got %s instead", reflect.TypeOf(stmt))
 		return
 	}
 
@@ -54,7 +63,7 @@ func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
 	// Get namespace store
 	namespaceStore, err := e.system.Namespaces()
 	if err != nil {
-		w.Fail(InternalServerError, "could not access namespace data")
+		w.Fail(common.InternalServerError, "could not access namespace data")
 		return
 	}
 
@@ -64,10 +73,10 @@ func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
 	// Verify namespace existence
 	_, err = namespaceStore.Get(name)
 	if err == datamodel.ErrNamespaceDoesNotExist {
-		w.Fail(NamespaceDoesNotExist, name)
+		w.Fail(common.NamespaceDoesNotExist, name)
 		return
 	} else if err != nil {
-		w.Fail(InternalServerError, "could not access namespace data")
+		w.Fail(common.InternalServerError, "could not access namespace data")
 		return
 	}
 
@@ -75,7 +84,7 @@ func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
 	if user.IsAdmin() {
 		e.session.namespace = name
 		e.terminal.SetPrompt(fmt.Sprintf("kappa: %s> ", name))
-		w.Success(OK, "")
+		w.Success(common.OK, "")
 		return
 	}
 
@@ -86,13 +95,13 @@ func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
 		if namespace == name {
 			e.session.namespace = name
 			e.terminal.SetPrompt(fmt.Sprintf("kappa: %s> ", name))
-			w.Success(OK, "")
+			w.Success(common.OK, "")
 			return
 		}
 	}
 
 	// Otherwise, the user is not authorized
-	w.Fail(Unauthorized, "")
+	w.Fail(common.Unauthorized, "")
 }
 
 // Only the admin can create root namespaces.
@@ -100,18 +109,18 @@ func (e *Executor) handleUseStatement(w *ResponseWriter, stmt skl.Statement) {
 // If the user is not the admin, they must have the 'create.namespace'
 //  permission for the parent namespace.
 // Root namespaces don't have any periods.
-func (e *Executor) handleCreateNamespace(w *ResponseWriter, stmt skl.Statement) {
+func (e *Executor) handleCreateNamespace(w *common.ResponseWriter, stmt skl.Statement) {
 
 	createStatement, ok := stmt.(*skl.CreateNamespaceStatement)
 	if !ok {
-		w.Fail(InvalidStatementType, "expected *CreateNamespaceStatement, got %s instead", reflect.TypeOf(stmt))
+		w.Fail(common.InvalidStatementType, "expected *CreateNamespaceStatement, got %s instead", reflect.TypeOf(stmt))
 		return
 	}
 
 	// Get namespace store
 	namespaceStore, err := e.system.Namespaces()
 	if err != nil {
-		w.Fail(InternalServerError, "could not access namespace data")
+		w.Fail(common.InternalServerError, "could not access namespace data")
 		return
 	}
 
@@ -123,7 +132,7 @@ func (e *Executor) handleCreateNamespace(w *ResponseWriter, stmt skl.Statement) 
 
 	// If err == nil, the namespace already existed
 	if e.namespaceAlreadyExists(namespace, namespaceStore) {
-		w.Success(NamespaceAlreadyExists, namespace)
+		w.Success(common.NamespaceAlreadyExists, namespace)
 		return
 	}
 
@@ -150,10 +159,10 @@ func (e *Executor) handleCreateNamespace(w *ResponseWriter, stmt skl.Statement) 
 		// Determine if parent namespace exists
 		ns, err := namespaceStore.Get(parentNamespace)
 		if err == datamodel.ErrNamespaceDoesNotExist {
-			w.Fail(NamespaceDoesNotExist, parentNamespace)
+			w.Fail(common.NamespaceDoesNotExist, parentNamespace)
 			return
 		} else if err != nil {
-			w.Fail(InternalServerError, "")
+			w.Fail(common.InternalServerError, "")
 			return
 		}
 
@@ -169,7 +178,7 @@ func (e *Executor) handleCreateNamespace(w *ResponseWriter, stmt skl.Statement) 
 
 		// Return error if not authorized
 		if !access {
-			w.Fail(Unauthorized, "cannot create namespace '%s'", namespace)
+			w.Fail(common.Unauthorized, "cannot create namespace '%s'", namespace)
 			return
 		}
 	}
@@ -182,25 +191,25 @@ func (e *Executor) handleCreateNamespace(w *ResponseWriter, stmt skl.Statement) 
 		// Verify namespace existance
 		parent, err = namespaceStore.Get(parentNamespace)
 		if err != nil {
-			w.Fail(InternalServerError, "parent namespace does not exist")
+			w.Fail(common.InternalServerError, "parent namespace does not exist")
 			return
 		}
 	}
 
 	// Create child namespace
 	if _, err = parent.CreateChild(namespace); err != nil {
-		w.Fail(CreateNamespaceError, "cannot create namespace '%s'", namespace)
+		w.Fail(common.CreateNamespaceError, "cannot create namespace '%s'", namespace)
 		return
 	}
 
-	w.Success(OK, "namespace created")
+	w.Success(common.OK, "namespace created")
 }
 
-func (e *Executor) handleShowNamespace(w *ResponseWriter, stmt skl.Statement) {
+func (e *Executor) handleShowNamespace(w *common.ResponseWriter, stmt skl.Statement) {
 
 	_, ok := stmt.(*skl.ShowNamespacesStatement)
 	if !ok {
-		w.Fail(InvalidStatementType, "expected *ShowNamespacesStatement, got %s instead", reflect.TypeOf(stmt))
+		w.Fail(common.InvalidStatementType, "expected *ShowNamespacesStatement, got %s instead", reflect.TypeOf(stmt))
 		return
 	}
 
@@ -211,7 +220,7 @@ func (e *Executor) handleShowNamespace(w *ResponseWriter, stmt skl.Statement) {
 		// Get namespace store
 		namespaceStore, err := e.system.Namespaces()
 		if err != nil {
-			w.Fail(InternalServerError, "could not access namespace data")
+			w.Fail(common.InternalServerError, "could not access namespace data")
 			return
 		}
 
@@ -232,7 +241,7 @@ func (e *Executor) handleShowNamespace(w *ResponseWriter, stmt skl.Statement) {
 		w.Write(w.Colors.Reset)
 	}
 
-	w.Success(OK, "")
+	w.Success(common.OK, "")
 }
 
 // namespaceAlreadyExists determines if a namespace already exists...
@@ -242,7 +251,7 @@ func (e *Executor) namespaceAlreadyExists(namespace string, store datamodel.Name
 }
 
 // If the namespace being created is a root namespace, only the admin account can create it
-func (e *Executor) handleCreateRootNamespace(w *ResponseWriter, stmt *skl.CreateNamespaceStatement, store datamodel.NamespaceStore) {
+func (e *Executor) handleCreateRootNamespace(w *common.ResponseWriter, stmt *skl.CreateNamespaceStatement, store datamodel.NamespaceStore) {
 
 	// Get namespace
 	name := stmt.Namespace()
@@ -252,7 +261,7 @@ func (e *Executor) handleCreateRootNamespace(w *ResponseWriter, stmt *skl.Create
 
 	// If err == nil, the namespace already exists
 	if err == nil {
-		w.Success(NamespaceAlreadyExists, name)
+		w.Success(common.NamespaceAlreadyExists, name)
 		return
 	}
 
@@ -265,16 +274,16 @@ func (e *Executor) handleCreateRootNamespace(w *ResponseWriter, stmt *skl.Create
 
 		// If err !+ nil, namespace could not be created
 		if err != nil {
-			w.Fail(CreateNamespaceError, "could not create namespace '%s'", name)
+			w.Fail(common.CreateNamespaceError, "could not create namespace '%s'", name)
 			return
 		}
 
 		// No error == success
-		w.Success(OK, "namespace created")
+		w.Success(common.OK, "namespace created")
 		return
 	}
 
 	// Otherwise fail creation
-	w.Fail(Unauthorized, "root namespaces can only be created by the admin account")
+	w.Fail(common.Unauthorized, "root namespaces can only be created by the admin account")
 	return
 }
