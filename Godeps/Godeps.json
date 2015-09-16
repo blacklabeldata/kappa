@@ -15,6 +15,10 @@
 			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
 		},
 		{
+			"ImportPath": "github.com/blacklabeldata/xbinary",
+			"Rev": "c5227a8f59bc764a4cef1ff615360f801635d260"
+		},
+		{
 			"ImportPath": "github.com/boltdb/bolt",
 			"Comment": "v1.0-79-g2c04100",
 			"Rev": "2c04100eb9793f2b8541d243494e2909d2112325"
@@ -92,6 +96,10 @@
 		{
 			"ImportPath": "github.com/stretchr/testify/suite",
 			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
+		},
+		{
+			"ImportPath": "github.com/subsilent/crypto/ssh/terminal",
+			"Rev": "4d59ef09dd8cc7581edb91f2961d9d18a59b4691"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
