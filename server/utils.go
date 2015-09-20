@@ -36,8 +36,8 @@ func isKappaNode(member serf.Member) (bool, string) {
 
 // validateNode should validate all the Serf tags for the given member and returns
 // NodeDetails and any that occured error.
-func validateNode(serf.Member) (NodeDetails, error) {
-	return NodeDetails{}, errors.New("Not implemented")
+func getKappaServer(serf.Member) (*NodeDetails, error) {
+	return &NodeDetails{}, errors.New("Not implemented")
 }
 
 // NodeDetails stores details about a single serf.Member
@@ -47,4 +47,5 @@ type NodeDetails struct {
 	SSHPort   int
 	Bootstrap bool
 	Addr      net.TCPAddr
+	Expect    int
 }
