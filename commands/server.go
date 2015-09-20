@@ -31,6 +31,10 @@ var ServerCmd = &cobra.Command{
 		// Create server config
 		cfg := server.DatabaseConfig{
 			LogOutput:             writer,
+			NodeName:              viper.GetString("NodeName"),
+			ClusterName:           viper.GetString("ClusterName"),
+			Bootstrap:             viper.GetBool("Bootstrap"),
+			BootstrapExpect:       viper.GetInt("BootstrapExpect"),
 			AdminCertificateFile:  viper.GetString("AdminCert"),
 			CACertificateFile:     viper.GetString("CACert"),
 			DataPath:              viper.GetString("DataPath"),
@@ -75,14 +79,18 @@ var serverCmd *cobra.Command
 
 // Command line args
 var (
-	SSHKey     string
-	AdminCert  string
-	CACert     string
-	TLSCert    string
-	TLSKey     string
-	DataPath   string
-	SSHListen  string
-	HTTPListen string
+	SSHKey          string
+	AdminCert       string
+	CACert          string
+	TLSCert         string
+	TLSKey          string
+	DataPath        string
+	SSHListen       string
+	HTTPListen      string
+	NodeName        string
+	ClusterName     string
+	Bootstrap       bool
+	BootstrapExpect int
 )
 
 func init() {
@@ -95,6 +103,10 @@ func init() {
 	ServerCmd.PersistentFlags().StringVarP(&DataPath, "data", "D", "", "Data directory")
 	ServerCmd.PersistentFlags().StringVarP(&SSHListen, "ssh-listen", "S", "", "Host and port for SSH server to listen on")
 	ServerCmd.PersistentFlags().StringVarP(&HTTPListen, "http-listen", "H", ":", "Host and port for HTTP server to listen on")
+	ServerCmd.PersistentFlags().StringVarP(&NodeName, "node-name", "", "", "Node name")
+	ServerCmd.PersistentFlags().StringVarP(&ClusterName, "cluster", "", "", "Cluster name")
+	ServerCmd.PersistentFlags().BoolVarP(&Bootstrap, "bootstrap", "", false, "Bootstrap node")
+	ServerCmd.PersistentFlags().IntVarP(&BootstrapExpect, "bootstrap-expect", "", 0, "Bootstrap node")
 	serverCmd = ServerCmd
 }
 
@@ -111,6 +123,10 @@ func InitializeServerConfig(logger log.Logger) error {
 	viper.SetDefault("DataPath", "./data")
 	viper.SetDefault("SSHListen", ":9022")
 	viper.SetDefault("HTTPListen", ":19022")
+	viper.SetDefault("NodeName", "kappa-server")
+	viper.SetDefault("ClusterName", "kappa")
+	viper.SetDefault("Bootstrap", false)
+	viper.SetDefault("BootstrapExpect", 0)
 
 	if serverCmd.PersistentFlags().Lookup("ca-cert").Changed {
 		logger.Info("", "CACert", CACert)
@@ -143,6 +159,22 @@ func InitializeServerConfig(logger log.Logger) error {
 	if serverCmd.PersistentFlags().Lookup("data").Changed {
 		logger.Info("", "DataPath", DataPath)
 		viper.Set("DataPath", DataPath)
+	}
+	if serverCmd.PersistentFlags().Lookup("node-name").Changed {
+		logger.Info("", "NodeName", NodeName)
+		viper.Set("NodeName", NodeName)
+	}
+	if serverCmd.PersistentFlags().Lookup("cluster").Changed {
+		logger.Info("", "ClusterName", ClusterName)
+		viper.Set("ClusterName", ClusterName)
+	}
+	if serverCmd.PersistentFlags().Lookup("bootstrap").Changed {
+		logger.Info("", "Bootstrap", Bootstrap)
+		viper.Set("Bootstrap", Bootstrap)
+	}
+	if serverCmd.PersistentFlags().Lookup("bootstrap-expect").Changed {
+		logger.Info("", "BootstrapExpect", BootstrapExpect)
+		viper.Set("BootstrapExpect", BootstrapExpect)
 	}
 
 	return nil
