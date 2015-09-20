@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/blacklabeldata/kappa/auth"
 	"github.com/blacklabeldata/kappa/datamodel"
@@ -118,9 +117,9 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 
 	// Setup server config
 	config := sshh.Config{
-		Deadline:          time.Second,
+		Deadline:          c.SSHConnectionDeadline,
 		Logger:            sshLogger,
-		Bind:              ":9022",
+		Bind:              c.SSHBindAddress,
 		PrivateKey:        privateKey,
 		PublicKeyCallback: pubKeyCallback,
 		AuthLogCallback: func(meta ssh.ConnMetadata, method string, err error) {
