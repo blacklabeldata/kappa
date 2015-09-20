@@ -54,10 +54,6 @@ func init() {
 
 // InitializeMainConfig sets up the config options for the kappa command
 func InitializeMainConfig(logger log.Logger) error {
-	// Setup ENV support
-	viper.SetEnvPrefix("KAPPA")
-	viper.AutomaticEnv()
-
 	if kappaCmd.PersistentFlags().Lookup("config").Changed {
 		logger.Info("", "ConfigPath", ConfigPath)
 		viper.Set("ConfigPath", ConfigPath)
@@ -100,5 +96,6 @@ func InitializeConfig(writer io.Writer) error {
 		logger.Warn("Failed to initialize new-cert command line flags")
 		return err
 	}
+
 	return nil
 }
