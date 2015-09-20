@@ -196,7 +196,7 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) setupSerf() (*serf.Serf, error) {
-	conf := s.config.SerfConfig
+	conf := serf.DefaultConfig()
 
 	// Generate NodeName if missing
 	id, err := uuid.UUID4()
