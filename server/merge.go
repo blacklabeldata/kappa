@@ -26,7 +26,7 @@ func (md *mergeDelegate) NotifyMerge(members []*serf.Member) error {
 			continue
 		}
 
-		details, err := validateNode(*m)
+		_, err := getKappaServer(*m)
 		if err != nil {
 			return err
 		}
