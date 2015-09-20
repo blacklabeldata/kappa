@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/blacklabeldata/kappa",
 	"GoVersion": "go1.4.2",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -11,8 +8,12 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/armon/go-metrics",
+			"Rev": "6c5fa0d8f48f4661c9ba8709799c88d425ad20f0"
+		},
+		{
 			"ImportPath": "github.com/blacklabeldata/sshh",
-			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
+			"Rev": "62e596348f1928fa629adb658c418e0fb3e79b35"
 		},
 		{
 			"ImportPath": "github.com/blacklabeldata/xbinary",
@@ -30,6 +31,19 @@
 		{
 			"ImportPath": "github.com/eliquious/lexer",
 			"Rev": "ce9541d1c70a08475d2c0fc8ce0bf3ecaf26f017"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-msgpack/codec",
+			"Rev": "fa3f63826f7c23912c15263591e65d54d080b458"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/memberlist",
+			"Rev": "a93fbd426dd831f5a66db3adc6a5ffa6f44cc60a"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/serf/serf",
+			"Comment": "v0.6.4-32-g768a3c4",
+			"Rev": "768a3c43b2e2b7bb18a70a41f75cbf8d75f506f5"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
@@ -88,14 +102,6 @@
 		{
 			"ImportPath": "github.com/spf13/viper",
 			"Rev": "be5ff3e4840cf692388bde7a057595a474ef379e"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/suite",
-			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
 		},
 		{
 			"ImportPath": "github.com/subsilent/crypto/ssh/terminal",
