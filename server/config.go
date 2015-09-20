@@ -3,10 +3,27 @@ package server
 import (
 	"io"
 	"time"
+
+	"github.com/hashicorp/serf/serf"
 )
 
 // DatabaseConfig contains all the information to start the Kappa server.
 type DatabaseConfig struct {
+
+	// NodeName is the name of the node. If it is empty, a name
+	// will be generated.
+	NodeName string
+
+	// ClusterName prevents two clusters from merging.
+	ClusterName string
+
+	// Bootstrap determines if the server is bootstrapped into the cluster.
+	Bootstrap bool
+
+	BootstrapExpect int
+
+	// Build is the running server revision.
+	Build string
 
 	// AdminCertificateFile is the path to the admin user's certificate.
 	AdminCertificateFile string
@@ -20,6 +37,9 @@ type DatabaseConfig struct {
 	// LogOutput is the writer to which all logs are
 	// written to. If nil, it defaults to os.Stdout.
 	LogOutput io.Writer
+
+	// SerfConfig
+	SerfConfig *serf.Config
 
 	// SSHBindAddress is the address on which the SSH server listens.
 	SSHBindAddress string
