@@ -79,18 +79,22 @@ var serverCmd *cobra.Command
 
 // Command line args
 var (
-	SSHKey          string
-	AdminCert       string
-	CACert          string
-	TLSCert         string
-	TLSKey          string
-	DataPath        string
-	SSHListen       string
-	HTTPListen      string
-	NodeName        string
-	ClusterName     string
-	Bootstrap       bool
-	BootstrapExpect int
+	SSHKey              string
+	AdminCert           string
+	CACert              string
+	TLSCert             string
+	TLSKey              string
+	DataPath            string
+	SSHListen           string
+	HTTPListen          string
+	NodeName            string
+	ClusterName         string
+	Bootstrap           bool
+	BootstrapExpect     int
+	GossipBindAddr      string
+	GossipBindPort      int
+	GossipAdvertiseAddr string
+	GossipAdvertisePort int
 )
 
 func init() {
@@ -103,10 +107,18 @@ func init() {
 	ServerCmd.PersistentFlags().StringVarP(&DataPath, "data", "D", "", "Data directory")
 	ServerCmd.PersistentFlags().StringVarP(&SSHListen, "ssh-listen", "S", "", "Host and port for SSH server to listen on")
 	ServerCmd.PersistentFlags().StringVarP(&HTTPListen, "http-listen", "H", ":", "Host and port for HTTP server to listen on")
+
+	// Serf
 	ServerCmd.PersistentFlags().StringVarP(&NodeName, "node-name", "", "", "Node name")
 	ServerCmd.PersistentFlags().StringVarP(&ClusterName, "cluster", "", "", "Cluster name")
 	ServerCmd.PersistentFlags().BoolVarP(&Bootstrap, "bootstrap", "", false, "Bootstrap node")
 	ServerCmd.PersistentFlags().IntVarP(&BootstrapExpect, "bootstrap-expect", "", 0, "Bootstrap node")
+
+	// Memberlist
+	ServerCmd.PersistentFlags().StringVarP(&GossipBindAddr, "gossip-bind-addr", "", "", "Address for gossip")
+	ServerCmd.PersistentFlags().IntVarP(&GossipBindPort, "gossip-bind-port", "", 7946, "Port for gossip")
+	ServerCmd.PersistentFlags().StringVarP(&GossipAdvertiseAddr, "gossip-advert-addr", "", "", "Address to advertise gossip")
+	ServerCmd.PersistentFlags().IntVarP(&GossipAdvertisePort, "gossip-advert-port", "", 7946, "Port to advertise gossip")
 	serverCmd = ServerCmd
 }
 
@@ -123,10 +135,18 @@ func InitializeServerConfig(logger log.Logger) error {
 	viper.SetDefault("DataPath", "./data")
 	viper.SetDefault("SSHListen", ":9022")
 	viper.SetDefault("HTTPListen", ":19022")
+
+	// Serf config
 	viper.SetDefault("NodeName", "kappa-server")
 	viper.SetDefault("ClusterName", "kappa")
 	viper.SetDefault("Bootstrap", false)
 	viper.SetDefault("BootstrapExpect", 0)
+
+	// Memberlist config
+	viper.SetDefault("GossipBindAddr", "0.0.0.0")
+	viper.SetDefault("GossipBindPort", 7946)
+	viper.SetDefault("GossipAdvertiseAddr", "")
+	viper.SetDefault("GossipAdvertisePort", 7946)
 
 	if serverCmd.PersistentFlags().Lookup("ca-cert").Changed {
 		logger.Info("", "CACert", CACert)
@@ -160,6 +180,8 @@ func InitializeServerConfig(logger log.Logger) error {
 		logger.Info("", "DataPath", DataPath)
 		viper.Set("DataPath", DataPath)
 	}
+
+	// Serf config
 	if serverCmd.PersistentFlags().Lookup("node-name").Changed {
 		logger.Info("", "NodeName", NodeName)
 		viper.Set("NodeName", NodeName)
@@ -175,6 +197,24 @@ func InitializeServerConfig(logger log.Logger) error {
 	if serverCmd.PersistentFlags().Lookup("bootstrap-expect").Changed {
 		logger.Info("", "BootstrapExpect", BootstrapExpect)
 		viper.Set("BootstrapExpect", BootstrapExpect)
+	}
+
+	// Memberlist Config
+	if serverCmd.PersistentFlags().Lookup("gossip-bind-addr").Changed {
+		logger.Info("", "GossipBindAddr", GossipBindAddr)
+		viper.Set("GossipBindAddr", GossipBindAddr)
+	}
+	if serverCmd.PersistentFlags().Lookup("gossip-bind-port").Changed {
+		logger.Info("", "GossipBindPort", GossipBindPort)
+		viper.Set("GossipBindPort", GossipBindPort)
+	}
+	if serverCmd.PersistentFlags().Lookup("gossip-advert-addr").Changed {
+		logger.Info("", "GossipAdvertiseAddr", GossipAdvertiseAddr)
+		viper.Set("GossipAdvertiseAddr", GossipAdvertiseAddr)
+	}
+	if serverCmd.PersistentFlags().Lookup("gossip-advert-port").Changed {
+		logger.Info("", "GossipAdvertisePort", GossipAdvertisePort)
+		viper.Set("GossipAdvertisePort", GossipAdvertisePort)
 	}
 
 	return nil

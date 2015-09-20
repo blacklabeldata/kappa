@@ -211,6 +211,11 @@ func (s *Server) setupSerf() (*serf.Serf, error) {
 	conf.Init()
 
 	conf.NodeName = s.config.NodeName
+	conf.MemberlistConfig.BindAddr = s.config.GossipBindAddr
+	conf.MemberlistConfig.BindPort = s.config.GossipBindPort
+	conf.MemberlistConfig.AdvertiseAddr = s.config.GossipAdvertiseAddr
+	conf.MemberlistConfig.AdvertisePort = s.config.GossipAdvertisePort
+
 	conf.Tags["id"] = id
 	conf.Tags["role"] = "kappa"
 	conf.Tags["cluster"] = s.config.ClusterName

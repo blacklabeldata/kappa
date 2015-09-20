@@ -44,4 +44,16 @@ type DatabaseConfig struct {
 
 	// SSHPrivateKeyFile refers to the private key file of the SSH server.
 	SSHPrivateKeyFile string
+
+	// GossipBindAddr
+	GossipBindAddr string
+
+	// GossipBindPort
+	GossipBindPort int
+
+	// GossipAdvertiseAddr
+	GossipAdvertiseAddr string
+
+	// GossipAdvertisePort
+	GossipAdvertisePort int
 }
