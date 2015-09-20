@@ -127,27 +127,75 @@ func InitializeServerConfig(logger log.Logger) error {
 
 	// Load default settings
 	logger.Info("Loading default server settings")
+
+	// CACert sets the certificate authority
 	viper.SetDefault("CACert", "ca.crt")
+	viper.RegisterAlias("CA_CERT", "CACert")
+
+	// AdminCert sets the admin certificate
 	viper.SetDefault("AdminCert", "admin.crt")
+	viper.RegisterAlias("ADMIN_CERT", "AdminCert")
+
+	// SSHKey sets the private key for the SSH server
 	viper.SetDefault("SSHKey", "ssh-identity.key")
+	viper.RegisterAlias("SSH_KEY", "SSHKey")
+
+	// TLSCert sets the certificate for HTTPS
 	viper.SetDefault("TLSCert", "tls-identity.crt")
+	viper.RegisterAlias("TLS_CERT", "TLSCert")
+
+	// TLSKey sets the private key for HTTPS
 	viper.SetDefault("TLSKey", "tls-identity.key")
+	viper.RegisterAlias("TLS_KEY", "TLSKey")
+
+	// DataPath sets the directory for data storage
 	viper.SetDefault("DataPath", "./data")
+	viper.RegisterAlias("DATA_PATH", "DataPath")
+
+	// SSHListen sets the address to listen for SSH traffic
 	viper.SetDefault("SSHListen", ":9022")
+	viper.RegisterAlias("SSH_LISTEN", "SSHListen")
+
+	// HTTPListen sets the address to listen for HTTP traffic
 	viper.SetDefault("HTTPListen", ":19022")
+	viper.RegisterAlias("HTTP_LISTEN", "HTTPListen")
 
 	// Serf config
+	// NodeName sets the server's name
 	viper.SetDefault("NodeName", "kappa-server")
+	viper.RegisterAlias("NODE_NAME", "NodeName")
+
+	// ClusterName sets the cluster name of this node.
 	viper.SetDefault("ClusterName", "kappa")
+	viper.RegisterAlias("CLUSTER_NAME", "ClusterName")
+
+	// Bootstrap sets whether to bootstrap this node.
 	viper.SetDefault("Bootstrap", false)
+	viper.RegisterAlias("BOOTSTRAP", "Bootstrap")
+
+	// BootstrapExpect is an argument used by Serf.
 	viper.SetDefault("BootstrapExpect", 0)
 
 	// Memberlist config
+	// GossipBindAddr sets the Addr for cluster gossip.
 	viper.SetDefault("GossipBindAddr", "0.0.0.0")
-	viper.SetDefault("GossipBindPort", 7946)
-	viper.SetDefault("GossipAdvertiseAddr", "")
-	viper.SetDefault("GossipAdvertisePort", 7946)
+	viper.RegisterAlias("GOSSIP_BIND_ADDR", "GossipBindAddr")
 
+	// GossipBindPort sets the port for cluster gossip. The port is used for both UDP and TCP gossip.
+	viper.SetDefault("GossipBindPort", 7946)
+	viper.RegisterAlias("GOSSIP_BIND_PORT", "GossipBindPort")
+
+	// GossipAdvertiseAddr sets what address to advertise to other
+	// cluster members. Used for nat traversal.
+	viper.SetDefault("GossipAdvertiseAddr", "")
+	viper.RegisterAlias("GOSSIP_ADVERTISE_ADDR", "GossipAdvertiseAddr")
+
+	// GossipAdvertisePort sets the port for cluster gossip and can
+	// be useful for NAT traversal.
+	viper.SetDefault("GossipAdvertisePort", 7946)
+	viper.RegisterAlias("GOSSIP_ADVERTISE_PORT", "GossipAdvertisePort")
+
+	// Set viper flags
 	if serverCmd.PersistentFlags().Lookup("ca-cert").Changed {
 		logger.Info("", "CACert", CACert)
 		viper.Set("CACert", CACert)
