@@ -30,8 +30,9 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 	logger := log.NewLogger(c.LogOutput, "kappa")
 
 	// Create data directory
-	if err = os.MkdirAll(c.DataPath, os.ModeDir|0655); err != nil {
-		logger.Warn("Could not create data directory", "err", err.Error())
+	if err = os.MkdirAll(c.DataPath, 0755); err != nil {
+		logger.Warn("Could not create data directory", "err", err)
+		// logger.Warn("Could not create data directory", "err", err.Error())
 		return
 	}
 
@@ -146,6 +147,7 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 		config:       c,
 		logger:       logger,
 		sshServer:    &sshServer,
+		localKappas:  make(map[string]*NodeDetails),
 		serfEventCh:  make(chan serf.Event, 256),
 		kappaEventCh: make(chan serf.UserEvent, 256),
 		reconcileCh:  make(chan serf.Member, 32),
@@ -154,7 +156,7 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 	// Create serf server
 	s.serf, err = s.setupSerf()
 	if err != nil {
-		err = fmt.Errorf("Failed to start serf: %v", err)
+		err = logger.Error("Failed to start serf: %v", err)
 		return
 	}
 
@@ -178,15 +180,37 @@ type Server struct {
 	t            tomb.Tomb
 }
 
-func (s *Server) Start() {
+func (s *Server) Start() error {
 	s.sshServer.Start()
 
 	// Start serf handler
 	s.t.Go(s.serfEventHandler)
+
+	// Join serf cluster
+	// if !s.config.Bootstrap && len(s.config.ExistingNodes) > 0 {
+	// addr, err := s.serf.Memberlist().LocalNode().Addr.MarshalText()
+	s.logger.Info("local node", "port", s.serf.LocalMember().Port)
+	s.logger.Info("Joining cluster", "nodes", s.config.ExistingNodes)
+
+	n, err := s.serf.Join(s.config.ExistingNodes, true)
+	if err != nil && !s.config.Bootstrap {
+		err = s.logger.Error("Failed to join cluster", "err", err)
+		return err
+	}
+	s.logger.Info("Joined cluster", "nodes", n)
+	// }
+	return nil
 }
 
 func (s *Server) Stop() {
+
+	// Stop SSH server
 	s.sshServer.Stop()
+
+	// Shutdown serf
+	s.serf.Leave()
+	s.serf.Shutdown()
+	<-s.serf.ShutdownCh()
 
 	// Kill Serf handler
 	s.t.Kill(nil)
@@ -208,12 +232,17 @@ func (s *Server) setupSerf() (*serf.Serf, error) {
 
 	// Initialize serf
 	conf.Init()
+	// s.logger.Info("local port", "port", conf.MemberlistConfig.BindPort)
 
 	conf.NodeName = s.config.NodeName
 	conf.MemberlistConfig.BindAddr = s.config.GossipBindAddr
+	s.logger.Info("local node", "BindAddr", conf.MemberlistConfig.BindAddr)
 	conf.MemberlistConfig.BindPort = s.config.GossipBindPort
+	s.logger.Info("local node", "BindPort", conf.MemberlistConfig.BindPort)
 	conf.MemberlistConfig.AdvertiseAddr = s.config.GossipAdvertiseAddr
+	s.logger.Info("local node", "AdvertiseAddr", conf.MemberlistConfig.AdvertiseAddr)
 	conf.MemberlistConfig.AdvertisePort = s.config.GossipAdvertisePort
+	s.logger.Info("local node", "AdvertisePort", conf.MemberlistConfig.AdvertisePort)
 
 	conf.Tags["id"] = id
 	conf.Tags["role"] = "kappa"
