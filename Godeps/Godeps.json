@@ -11,6 +11,10 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/blacklabeldata/namedtuple",
+			"Rev": "1fd67406973675692256111867aec07fd2855bad"
+		},
+		{
 			"ImportPath": "github.com/blacklabeldata/sshh",
 			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
 		},
