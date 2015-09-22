@@ -36,6 +36,7 @@ func (s *Server) serfEventHandler() error {
 	for {
 		select {
 		case e := <-s.serfEventCh:
+			s.logger.Info("Received event:", "evt", e.String())
 			switch e.EventType() {
 			case serf.EventMemberJoin:
 				s.nodeJoin(e.(serf.MemberEvent))
@@ -114,9 +115,10 @@ func (s *Server) nodeJoin(me serf.MemberEvent) {
 	for _, m := range me.Members {
 		details, err := getKappaServer(m)
 		if err != nil {
+			s.logger.Warn("kappa: error adding server", err)
 			continue
 		}
-		s.logger.Info("kappa: adding server %s", details)
+		s.logger.Info("kappa: adding server", details.String())
 
 		// Add to the local list as well
 		if details.Cluster == s.config.ClusterName {
@@ -156,15 +158,15 @@ func (s *Server) maybeBootstrap() {
 			continue
 		}
 		if details.Cluster != s.config.ClusterName {
-			s.logger.Error("kappa: Member %v has a conflicting datacenter, ignoring", member)
+			s.logger.Warn("kappa: Member %v has a conflicting datacenter, ignoring", member)
 			continue
 		}
 		if details.Expect != 0 && details.Expect != s.config.BootstrapExpect {
-			s.logger.Error("kappa: Member %v has a conflicting expect value. All nodes should expect the same number.", member)
+			s.logger.Warn("kappa: Member %v has a conflicting expect value. All nodes should expect the same number.", member)
 			return
 		}
 		if details.Bootstrap {
-			s.logger.Error("kappa: Member %v has bootstrap mode. Expect disabled.", member)
+			s.logger.Warn("kappa: Member %v has bootstrap mode. Expect disabled.", member)
 			return
 		}
 		addr := &net.TCPAddr{IP: member.Addr, Port: details.SSHPort}
