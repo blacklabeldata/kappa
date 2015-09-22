@@ -3,7 +3,7 @@ package namedtuple
 import (
 	"math"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 // PutString writes a string value for the given field. The field type must be a `StringField` otherwise an error will be returned. The type code is written first, then a length, and finally the value. If the size of the string is `< math.MaxUint8`, a single byte will represent the length. If the size of the string is `< math.MaxUint16`, a uint16 value will represent the length and so on. If the buffer does not have enough space for the entire string and field header, an error will be returned. If successful, the number of bytes written will be returned as well as a nil error.

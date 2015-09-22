@@ -3,8 +3,8 @@ package namedtuple
 import (
 	"testing"
 
+	"github.com/blacklabeldata/xbinary"
 	"github.com/stretchr/testify/assert"
-	"github.com/swiftkick-io/xbinary"
 )
 
 func TestBuilderPutUint8Fail(t *testing.T) {
@@ -18,12 +18,12 @@ func TestBuilderPutUint8Fail(t *testing.T) {
 	// fails type check
 	wrote, err := builder.PutUint8("uuid", uint8(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutUint8("age", uint8(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint8Pass(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBuilderPutUint8Pass(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint8("age", uint8(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedInt8Code.OpCode, uint8(builder.buffer[0]))
@@ -65,12 +65,12 @@ func TestBuilderPutInt8Fail(t *testing.T) {
 	wrote, err := builder.PutInt8("uint8", int8(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutInt8("int8", int8(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt8Pass(t *testing.T) {
@@ -89,7 +89,7 @@ func TestBuilderPutInt8Pass(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt8("int8", int8(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, Int8Code.OpCode, uint8(builder.buffer[0]))
@@ -117,12 +117,12 @@ func TestBuilderPutUint16Fail_1(t *testing.T) {
 	wrote, err := builder.PutUint16("int16", uint16(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutUint16("uint16", uint16(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint16Pass_1(t *testing.T) {
@@ -142,7 +142,7 @@ func TestBuilderPutUint16Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint16("uint16", uint16(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedShort8Code.OpCode, uint8(builder.buffer[0]))
@@ -169,7 +169,7 @@ func TestBuilderPutUint16Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint16("uint16", uint16(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint16Pass_2(t *testing.T) {
@@ -189,7 +189,7 @@ func TestBuilderPutUint16Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint16("uint16", uint16(300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedShort16Code.OpCode, uint8(builder.buffer[0]))
@@ -220,12 +220,12 @@ func TestBuilderPutInt16Fail_1(t *testing.T) {
 	wrote, err := builder.PutInt16("uint16", int16(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutInt16("int16", int16(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt16Pass_1(t *testing.T) {
@@ -245,7 +245,7 @@ func TestBuilderPutInt16Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt16("int16", int16(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, Short8Code.OpCode, uint8(builder.buffer[0]))
@@ -272,7 +272,7 @@ func TestBuilderPutInt16Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt16("int16", int16(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt16Pass_2(t *testing.T) {
@@ -292,7 +292,7 @@ func TestBuilderPutInt16Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt16("int16", int16(-300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, Short16Code.OpCode, uint8(builder.buffer[0]))
@@ -323,12 +323,12 @@ func TestBuilderPutUint32Fail_1(t *testing.T) {
 	wrote, err := builder.PutUint32("int32", uint32(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutUint32("uint32", uint32(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint32Pass_1(t *testing.T) {
@@ -348,7 +348,7 @@ func TestBuilderPutUint32Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint32("uint32", uint32(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedInt8Code.OpCode, uint8(builder.buffer[0]))
@@ -375,7 +375,7 @@ func TestBuilderPutUint32Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint32("uint32", uint32(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint32Pass_2(t *testing.T) {
@@ -395,7 +395,7 @@ func TestBuilderPutUint32Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint32("uint32", uint32(300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedInt16Code.OpCode, uint8(builder.buffer[0]))
@@ -424,7 +424,7 @@ func TestBuilderPutUint32Fail_3(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint32("uint32", uint32(135000))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint32Pass_3(t *testing.T) {
@@ -444,7 +444,7 @@ func TestBuilderPutUint32Pass_3(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint32("uint32", uint32(135000))
 	assert.Nil(t, err)
-	assert.Equal(t, 5, wrote)
+	assert.Equal(t, uint64(5), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedInt32Code.OpCode, uint8(builder.buffer[0]))
@@ -475,12 +475,12 @@ func TestBuilderPutInt32Fail_1(t *testing.T) {
 	wrote, err := builder.PutInt32("uint32", int32(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutInt32("int32", int32(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt32Pass_1(t *testing.T) {
@@ -500,7 +500,7 @@ func TestBuilderPutInt32Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt32("int32", int32(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, Int8Code.OpCode, uint8(builder.buffer[0]))
@@ -527,7 +527,7 @@ func TestBuilderPutInt32Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt32("int32", int32(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt32Pass_2(t *testing.T) {
@@ -547,7 +547,7 @@ func TestBuilderPutInt32Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt32("int32", int32(300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, Int16Code.OpCode, uint8(builder.buffer[0]))
@@ -576,7 +576,7 @@ func TestBuilderPutInt32Fail_3(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt32("int32", int32(135000))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt32Pass_3(t *testing.T) {
@@ -596,7 +596,7 @@ func TestBuilderPutInt32Pass_3(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt32("int32", int32(135000))
 	assert.Nil(t, err)
-	assert.Equal(t, 5, wrote)
+	assert.Equal(t, uint64(5), wrote)
 
 	// test data validity
 	assert.Equal(t, Int32Code.OpCode, uint8(builder.buffer[0]))
@@ -627,12 +627,12 @@ func TestBuilderPutUint64Fail_1(t *testing.T) {
 	wrote, err := builder.PutUint64("int64", uint64(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutUint64("uint64", uint64(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint64Pass_1(t *testing.T) {
@@ -652,7 +652,7 @@ func TestBuilderPutUint64Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint64("uint64", uint64(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedLong8Code.OpCode, uint8(builder.buffer[0]))
@@ -679,7 +679,7 @@ func TestBuilderPutUint64Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint64("uint64", uint64(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint64Pass_2(t *testing.T) {
@@ -699,7 +699,7 @@ func TestBuilderPutUint64Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint64("uint64", uint64(300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedLong16Code.OpCode, uint8(builder.buffer[0]))
@@ -728,7 +728,7 @@ func TestBuilderPutUint64Fail_3(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint64("uint64", uint64(135000))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint64Pass_3(t *testing.T) {
@@ -748,7 +748,7 @@ func TestBuilderPutUint64Pass_3(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint64("uint64", uint64(135000))
 	assert.Nil(t, err)
-	assert.Equal(t, 5, wrote)
+	assert.Equal(t, uint64(5), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedLong32Code.OpCode, uint8(builder.buffer[0]))
@@ -777,7 +777,7 @@ func TestBuilderPutUint64Fail_4(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutUint64("uint64", uint64(17179869184)) // 2^34
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutUint64Pass_4(t *testing.T) {
@@ -797,7 +797,7 @@ func TestBuilderPutUint64Pass_4(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutUint64("uint64", uint64(17179869184)) // 2^34
 	assert.Nil(t, err)
-	assert.Equal(t, 9, wrote)
+	assert.Equal(t, uint64(9), wrote)
 
 	// test data validity
 	assert.Equal(t, UnsignedLong64Code.OpCode, uint8(builder.buffer[0]))
@@ -828,12 +828,12 @@ func TestBuilderPutInt64Fail_1(t *testing.T) {
 	wrote, err := builder.PutInt64("uint64", int64(20))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutInt64("int64", int64(20))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt64Pass_1(t *testing.T) {
@@ -853,7 +853,7 @@ func TestBuilderPutInt64Pass_1(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt64("int64", int64(20))
 	assert.Nil(t, err)
-	assert.Equal(t, 2, wrote)
+	assert.Equal(t, uint64(2), wrote)
 
 	// test data validity
 	assert.Equal(t, Long8Code.OpCode, uint8(builder.buffer[0]))
@@ -880,7 +880,7 @@ func TestBuilderPutInt64Fail_2(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt64("int64", int64(300))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt64Pass_2(t *testing.T) {
@@ -900,7 +900,7 @@ func TestBuilderPutInt64Pass_2(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt64("int64", int64(300))
 	assert.Nil(t, err)
-	assert.Equal(t, 3, wrote)
+	assert.Equal(t, uint64(3), wrote)
 
 	// test data validity
 	assert.Equal(t, Long16Code.OpCode, uint8(builder.buffer[0]))
@@ -929,7 +929,7 @@ func TestBuilderPutInt64Fail_3(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt64("int64", int64(135000))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt64Pass_3(t *testing.T) {
@@ -949,7 +949,7 @@ func TestBuilderPutInt64Pass_3(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt64("int64", int64(135000))
 	assert.Nil(t, err)
-	assert.Equal(t, 5, wrote)
+	assert.Equal(t, uint64(5), wrote)
 
 	// test data validity
 	assert.Equal(t, Long32Code.OpCode, uint8(builder.buffer[0]))
@@ -978,7 +978,7 @@ func TestBuilderPutInt64Fail_4(t *testing.T) {
 	// fails length check
 	wrote, err := builder.PutInt64("int64", int64(17179869184)) // 2^34
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestBuilderPutInt64Pass_4(t *testing.T) {
@@ -998,7 +998,7 @@ func TestBuilderPutInt64Pass_4(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutInt64("int64", int64(17179869184)) // 2^34
 	assert.Nil(t, err)
-	assert.Equal(t, 9, wrote)
+	assert.Equal(t, uint64(9), wrote)
 
 	// test data validity
 	assert.Equal(t, Long64Code.OpCode, uint8(builder.buffer[0]))

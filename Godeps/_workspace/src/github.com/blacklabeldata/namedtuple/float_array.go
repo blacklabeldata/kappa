@@ -3,7 +3,7 @@ package namedtuple
 import (
 	"math"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 // PutFloat32Array writes a float array for the given field. The field type must be a 'Float32ArrayField', otherwise as error will be returned. The type code is written first followed by the array size in bytes. If the size of the array is less than `math.MaxUint8`, a byte will be used to represent the length. If the size of the array is less than `math.MaxUint16`, a 16-bit unsigned integer will be used to represent the length and so on. If the buffer is too small to store the entire array, an `xbinary.ErrOutOfRange` error will be returned. If the write is successful, the total number of bytes will be returned as well as a nil error.
@@ -97,7 +97,7 @@ func (b *TupleBuilder) PutFloat64Array(field string, value []float64) (wrote int
 	size := len(value)
 	if size < math.MaxUint8 {
 
-		if b.available() < size*4+2 {
+		if b.available() < size*8+2 {
 			return 0, xbinary.ErrOutOfRange
 		}
 
@@ -113,7 +113,7 @@ func (b *TupleBuilder) PutFloat64Array(field string, value []float64) (wrote int
 		wrote += size + 2
 	} else if size < math.MaxUint16 {
 
-		if b.available() < size*4+3 {
+		if b.available() < size*8+3 {
 			return 0, xbinary.ErrOutOfRange
 		}
 
@@ -129,7 +129,7 @@ func (b *TupleBuilder) PutFloat64Array(field string, value []float64) (wrote int
 		wrote += 3 + size
 	} else if size < math.MaxUint32 {
 
-		if b.available() < size*4+5 {
+		if b.available() < size*8+5 {
 			return 0, xbinary.ErrOutOfRange
 		}
 
@@ -145,7 +145,7 @@ func (b *TupleBuilder) PutFloat64Array(field string, value []float64) (wrote int
 		wrote += 5 + size
 	} else {
 
-		if b.available() < size*4+9 {
+		if b.available() < size*8+9 {
 			return 0, xbinary.ErrOutOfRange
 		}
 

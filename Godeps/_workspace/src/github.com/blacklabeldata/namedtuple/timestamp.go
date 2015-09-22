@@ -4,11 +4,11 @@ import (
 	"math"
 	"time"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 // PutTimestamp writes a 64-bit signed integer (using `time.UnixNano()`) for the given `time.Time` value. The timestamp field type must be a `TimestampField`. If the buffer does not have enough space available an error is returned. Upon successful write, the number of bytes written will be returned as well as a nil error.
-func (b *TupleBuilder) PutTimestamp(field string, value time.Time) (wrote int, err error) {
+func (b *TupleBuilder) PutTimestamp(field string, value time.Time) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, TimestampField); err != nil {

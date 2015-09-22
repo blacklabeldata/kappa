@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/blacklabeldata/xbinary"
 	"github.com/stretchr/testify/assert"
-	"github.com/swiftkick-io/xbinary"
 )
 
 func TestProtocolVersionMask(t *testing.T) {

@@ -3,8 +3,8 @@ package namedtuple
 import (
 	"testing"
 
+	"github.com/blacklabeldata/xbinary"
 	"github.com/stretchr/testify/assert"
-	"github.com/swiftkick-io/xbinary"
 )
 
 // Float32
@@ -26,12 +26,12 @@ func TestPutFloat32Fail(t *testing.T) {
 	wrote, err := builder.PutFloat32("float64", float32(3.14159))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutFloat32("float32", float32(3.14159))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestPutFloat32Pass(t *testing.T) {
@@ -51,7 +51,7 @@ func TestPutFloat32Pass(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutFloat32("float32", float32(3.14159))
 	assert.Nil(t, err)
-	assert.Equal(t, 5, wrote)
+	assert.Equal(t, uint64(5), wrote)
 
 	// test data validity
 	assert.Equal(t, FloatCode.OpCode, uint8(builder.buffer[0]))
@@ -82,12 +82,12 @@ func TestPutFloat64Fail(t *testing.T) {
 	wrote, err := builder.PutFloat64("float32", float64(3.14159))
 	// fmt.Println(err)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutFloat64("float64", float64(3.14159))
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestPutFloat64Pass(t *testing.T) {
@@ -107,7 +107,7 @@ func TestPutFloat64Pass(t *testing.T) {
 	// successful write
 	wrote, err := builder.PutFloat64("float64", float64(3.14159))
 	assert.Nil(t, err)
-	assert.Equal(t, 9, wrote)
+	assert.Equal(t, uint64(9), wrote)
 
 	// test data validity
 	assert.Equal(t, DoubleCode.OpCode, uint8(builder.buffer[0]))

@@ -3,8 +3,8 @@ package namedtuple
 import (
 	"testing"
 
+	"github.com/blacklabeldata/xbinary"
 	"github.com/stretchr/testify/assert"
-	"github.com/swiftkick-io/xbinary"
 )
 
 // String

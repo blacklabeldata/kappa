@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	// "github.com/swiftkick-io/xbinary"
+	// "github.com/blacklabeldata/xbinary"
 )
 
 func createTestLocationType() TupleType {

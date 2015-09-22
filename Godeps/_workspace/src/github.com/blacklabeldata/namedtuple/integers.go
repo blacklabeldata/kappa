@@ -3,11 +3,11 @@ package namedtuple
 import (
 	"math"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 // PutUint8 sets an 8-bit unsigned value for the given string name. The field name must be a Uint8Field otherwise an error will be returned. If the type buffer no longer has enough space to write this value an xbinary.ErrOutOfRange error will be returned. Upon success 2 bytes should be written into the buffer and the returned error should be nil. The type code is written first then the byte value.
-func (b *TupleBuilder) PutUint8(field string, value uint8) (wrote int, err error) {
+func (b *TupleBuilder) PutUint8(field string, value uint8) (wrote uint64, err error) {
 
 	// field type should be a Uint8Field
 	if err = b.typeCheck(field, Uint8Field); err != nil {
@@ -35,7 +35,7 @@ func (b *TupleBuilder) PutUint8(field string, value uint8) (wrote int, err error
 }
 
 // PutInt8 sets an 8-bit signed value for the given string name. The field name must be an Int8Field otherwise an error will be returned. If the type buffer no longer has enough space to write this value, an xbinary.ErrOutOfRange error will be returned. Upon success, 2 bytes should be written into the buffer and the returned error should be nil. The type code is written first then the byte value.
-func (b *TupleBuilder) PutInt8(field string, value int8) (wrote int, err error) {
+func (b *TupleBuilder) PutInt8(field string, value int8) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Int8Field); err != nil {
@@ -63,7 +63,7 @@ func (b *TupleBuilder) PutInt8(field string, value int8) (wrote int, err error) 
 }
 
 // PutUint16 sets a 16-bit unsigned value for the given field name.The field name must be a Uint16Field otherwise an error will be returned. If the type buffer no longer has enough space to write the value, an xbinary.ErrOutOfRange error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be writtn first. If the value is `< math.MaxUint8`, only 1 byte will be written. Otherwise, the entire 16-bit value will be written.
-func (b *TupleBuilder) PutUint16(field string, value uint16) (wrote int, err error) {
+func (b *TupleBuilder) PutUint16(field string, value uint16) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Uint16Field); err != nil {
@@ -114,7 +114,7 @@ func (b *TupleBuilder) PutUint16(field string, value uint16) (wrote int, err err
 }
 
 // PutInt16 sets a 16-bit signed value for the given field name.The field name must be an Int16Field; otherwise, an error will be returned. If the type buffer no longer has enough space to write the value, an xbinary.ErrOutOfRange error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be written first. If the value is `< math.MaxUint8`, only 1 byte will be written. Otherwise, the entire 16-bit value will be written.
-func (b *TupleBuilder) PutInt16(field string, value int16) (wrote int, err error) {
+func (b *TupleBuilder) PutInt16(field string, value int16) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Int16Field); err != nil {
@@ -165,7 +165,7 @@ func (b *TupleBuilder) PutInt16(field string, value int16) (wrote int, err error
 }
 
 // PutUint32 sets a 32-bit unsigned value for the given field name. The field name must be a Uint32Field, otherwise, an error will be returned. If the type buffer no longer has enough space to write the value, an `xbinary.ErrOutOfRange` error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be written first. If the value is `< math.MaxUint8`, only 1 byte will be written. If the value is `< math.MaxUint16`, only 2 bytes will be written. Otherwise, the entire 32-bit value will be written.
-func (b *TupleBuilder) PutUint32(field string, value uint32) (wrote int, err error) {
+func (b *TupleBuilder) PutUint32(field string, value uint32) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Uint32Field); err != nil {
@@ -234,7 +234,7 @@ func (b *TupleBuilder) PutUint32(field string, value uint32) (wrote int, err err
 }
 
 // PutInt32 sets a 32-bit signed value for the given field name. The field name must be a Int32Field. Otherwise, an error will be returned. If the type buffer no longer has enough space to write the value, an `xbinary.ErrOutOfRange` error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be written first. If the absolute value is `< math.MaxUint8`, only 1 byte will be written. If the absolute value is `< math.MaxUint16`, only 2 bytes will be written. Otherwise, the entire 32-bit value will be written.
-func (b *TupleBuilder) PutInt32(field string, value int32) (wrote int, err error) {
+func (b *TupleBuilder) PutInt32(field string, value int32) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Int32Field); err != nil {
@@ -305,7 +305,7 @@ func (b *TupleBuilder) PutInt32(field string, value int32) (wrote int, err error
 }
 
 // PutUint64 sets a 64-bit unsigned integer for the given field name. The field name must be a Uint64Field. Otherwise, an error will be returned. If the type buffer no longer has enough space to write the value, an `xbinary.ErrOutOfRange` error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be written first. If the absolute value is `< math.MaxUint8`, only 1 byte will be written. If the absolute value is `< math.MaxUint16`, only 2 bytes will be written. If the absolute value is `< math.MaxUint32`, only 4 bytes will be written. Otherwise, the entire 64-bit value will be written.
-func (b *TupleBuilder) PutUint64(field string, value uint64) (wrote int, err error) {
+func (b *TupleBuilder) PutUint64(field string, value uint64) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Uint64Field); err != nil {
@@ -395,7 +395,7 @@ func (b *TupleBuilder) PutUint64(field string, value uint64) (wrote int, err err
 }
 
 // PutInt64 sets a 64-bit signed integer for the given field name. The field name must be a Int64Field. Otherwise, an error will be returned. If the type buffer no longer has enough space to write the value, an `xbinary.ErrOutOfRange` error will be returned. Upon success, the number of bytes written as well as a nil error will be returned. The type code will be written first. If the absolute value is `< math.MaxUint8`, only 1 byte will be written. If the absolute value is `< math.MaxUint16`, only 2 bytes will be written. If the absolute value is `< math.MaxUint32`, only 4 bytes will be written. Otherwise, the entire 64-bit value will be written.
-func (b *TupleBuilder) PutInt64(field string, value int64) (wrote int, err error) {
+func (b *TupleBuilder) PutInt64(field string, value int64) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Int64Field); err != nil {

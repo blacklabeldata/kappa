@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 var (

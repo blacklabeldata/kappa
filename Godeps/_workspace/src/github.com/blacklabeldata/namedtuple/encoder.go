@@ -6,7 +6,7 @@ import (
 	"io"
 	"math"
 
-	"github.com/swiftkick-io/xbinary"
+	"github.com/blacklabeldata/xbinary"
 )
 
 var (

@@ -1,9 +1,9 @@
 package namedtuple
 
-import "github.com/swiftkick-io/xbinary"
+import "github.com/blacklabeldata/xbinary"
 
 // PutFloat32 writes a 32-bit float for the given string field. The field type must be `Float32Field`, otherwise an error is returned. The type code is written first then the value. Upon success, the number of bytes written is returned along with a nil error.
-func (b *TupleBuilder) PutFloat32(field string, value float32) (wrote int, err error) {
+func (b *TupleBuilder) PutFloat32(field string, value float32) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Float32Field); err != nil {
@@ -30,7 +30,7 @@ func (b *TupleBuilder) PutFloat32(field string, value float32) (wrote int, err e
 }
 
 // PutFloat64 writes a 64-bit float (or double in some languages) for the given string field. The field type must be `Float64Field`, otherwise an error is returned. The type code is written first then the value. Upon success, the number of bytes written is returned along with a nil error.
-func (b *TupleBuilder) PutFloat64(field string, value float64) (wrote int, err error) {
+func (b *TupleBuilder) PutFloat64(field string, value float64) (wrote uint64, err error) {
 
 	// field type should be
 	if err = b.typeCheck(field, Float64Field); err != nil {

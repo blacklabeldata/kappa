@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/blacklabeldata/xbinary"
 	"github.com/stretchr/testify/assert"
-	"github.com/swiftkick-io/xbinary"
 )
 
 // time testing
@@ -26,12 +26,12 @@ func TestPutTimestampFail(t *testing.T) {
 	// fails type check
 	wrote, err := builder.PutTimestamp("float64", time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 
 	// fails length check
 	wrote, err = builder.PutTimestamp("timestamp", time.Now())
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, wrote)
+	assert.Equal(t, uint64(0), wrote)
 }
 
 func TestPutTimestampPass(t *testing.T) {
@@ -52,7 +52,7 @@ func TestPutTimestampPass(t *testing.T) {
 	now := time.Now()
 	wrote, err := builder.PutTimestamp("timestamp", now)
 	assert.Nil(t, err)
-	assert.Equal(t, 9, wrote)
+	assert.Equal(t, uint64(9), wrote)
 
 	// test data validity
 	assert.Equal(t, TimestampCode.OpCode, uint8(builder.buffer[0]))
