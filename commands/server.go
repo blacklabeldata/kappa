@@ -1,18 +1,14 @@
 package commands
 
 import (
-	"crypto/x509"
-	"io/ioutil"
 	"os"
 	"os/signal"
-	"path"
+	"time"
 
+	"github.com/blacklabeldata/kappa/server"
 	log "github.com/mgutz/logxi/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/subsilent/kappa/auth"
-	"github.com/subsilent/kappa/datamodel"
-	"github.com/subsilent/kappa/ssh"
 )
 
 // ServerCmd is the kappa root command.
@@ -26,100 +22,32 @@ var ServerCmd = &cobra.Command{
 		writer := log.NewConcurrentWriter(os.Stdout)
 		logger := log.NewLogger(writer, "kappa")
 
+		// Initialize config
 		err := InitializeConfig(writer)
 		if err != nil {
 			return
 		}
 
-		// Create data directory
-		if err := os.MkdirAll(viper.GetString("DataPath"), os.ModeDir|0655); err != nil {
-			logger.Warn("Could not create data directory", "err", err.Error())
-			return
+		// Create server config
+		cfg := server.DatabaseConfig{
+			LogOutput:             writer,
+			AdminCertificateFile:  viper.GetString("AdminCert"),
+			CACertificateFile:     viper.GetString("CACert"),
+			DataPath:              viper.GetString("DataPath"),
+			SSHBindAddress:        viper.GetString("SSHListen"),
+			SSHPrivateKeyFile:     viper.GetString("SSHKey"),
+			SSHConnectionDeadline: time.Second,
 		}
 
-		// Connect to database
-		cwd, err := os.Getwd()
+		// Create server
+		svr, err := server.NewServer(&cfg)
 		if err != nil {
-			logger.Error("Could not get working directory", "error", err.Error())
+			logger.Error("Failed to start server:", "error", err)
 			return
 		}
 
-		file := path.Join(cwd, viper.GetString("DataPath"), "meta.db")
-		logger.Info("Connecting to database", "file", file)
-		system, err := datamodel.NewSystem(file)
-		if err != nil {
-			logger.Error("Could not connect to database", "error", err.Error())
-			return
-		}
-
-		// Get SSH Key file
-		sshKeyFile := viper.GetString("SSHKey")
-		logger.Info("Reading private key", "file", sshKeyFile)
-
-		privateKey, err := auth.ReadPrivateKey(logger, sshKeyFile)
-		if err != nil {
-			return
-		}
-
-		// Get admin certificate
-		adminCertFile := viper.GetString("AdminCert")
-		logger.Info("Reading admin public key", "file", adminCertFile)
-
-		// Read admin certificate
-		cert, err := ioutil.ReadFile(adminCertFile)
-		if err != nil {
-			logger.Error("admin certificate could not be read", "filename", viper.GetString("AdminCert"))
-			return
-		}
-
-		// Add admin cert to key ring
-		userStore, err := system.Users()
-		if err != nil {
-			logger.Error("could not get user store", "error", err.Error())
-			return
-		}
-
-		// Create admin account
-		admin, err := userStore.Create("admin")
-		if err != nil {
-			logger.Error("error creating admin account", "error", err.Error())
-			return
-		}
-
-		// Add admin certificate
-		keyRing := admin.KeyRing()
-		fingerprint, err := keyRing.AddPublicKey(cert)
-		if err != nil {
-			logger.Error("admin certificate could not be added", "error", err.Error())
-			return
-		}
-		logger.Info("Added admin certificate", "fingerprint", fingerprint)
-
-		// Read root cert
-		rootPem, err := ioutil.ReadFile(viper.GetString("CACert"))
-		if err != nil {
-			logger.Error("root certificate could not be read", "filename", viper.GetString("CACert"))
-			return
-		}
-
-		// Create certificate pool
-		roots := x509.NewCertPool()
-		if ok := roots.AppendCertsFromPEM(rootPem); !ok {
-			logger.Error("failed to parse root certificate")
-			return
-		}
-
-		// Setup SSH Server
-		sshLogger := log.NewLogger(writer, "ssh")
-		sshServer, err := ssh.NewSSHServer(sshLogger, system, privateKey, roots)
-		if err != nil {
-			logger.Error("SSH Server could not be configured", "error", err.Error())
-			return
-		}
-
-		// Setup signal structures
-		closer := make(chan bool)
-		sshServer.Run(logger, closer)
+		// Start server
+		svr.Start()
 
 		// Handle signals
 		sig := make(chan os.Signal, 1)
@@ -131,10 +59,14 @@ var ServerCmd = &cobra.Command{
 		// Block until signal is received
 		<-sig
 
+		// Stop listening for signals and close channel
+		signal.Stop(sig)
+		close(sig)
+
 		// Shut down SSH server
 		logger.Info("Shutting down servers.")
-		sshServer.Wait()
-		<-closer
+		// sshServer.Stop()
+		svr.Stop()
 	},
 }
 

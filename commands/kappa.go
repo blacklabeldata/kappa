@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// KappaCmd is the subsilent root command.
+// KappaCmd is the root root command.
 var KappaCmd = &cobra.Command{
 	Use:   "kappa",
 	Short: "Kappa is a NoSQL database centered around replicated logs and views.",
@@ -33,6 +33,7 @@ func AddCommands() {
 	KappaCmd.AddCommand(ServerCmd)
 	KappaCmd.AddCommand(InitCACmd)
 	KappaCmd.AddCommand(NewCertCmd)
+	KappaCmd.AddCommand(ClientCmd)
 }
 
 // Command line args

@@ -7,9 +7,9 @@ import (
     "fmt"
     "strings"
 
+    "github.com/blacklabeldata/kappa/auth"
     "github.com/boltdb/bolt"
     "github.com/eliquious/leaf"
-    "github.com/subsilent/kappa/auth"
     "golang.org/x/crypto/ssh"
 )
 

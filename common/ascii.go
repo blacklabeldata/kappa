@@ -1,4 +1,4 @@
-package ssh
+package common
 
 var ASCII = []string{"    d8b",
 	"     ?88",

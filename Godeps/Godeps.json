@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/subsilent/kappa",
+	"ImportPath": "github.com/blacklabeldata/kappa",
 	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
@@ -9,6 +9,14 @@
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/blacklabeldata/sshh",
+			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
+		},
+		{
+			"ImportPath": "github.com/blacklabeldata/xbinary",
+			"Rev": "c5227a8f59bc764a4cef1ff615360f801635d260"
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
@@ -90,12 +98,16 @@
 			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
 		},
 		{
-			"ImportPath": "github.com/subsilent/zbase32",
-			"Rev": "b76733425599ce1b09a9be33259e541c89718cc2"
+			"ImportPath": "github.com/subsilent/crypto/ssh/terminal",
+			"Rev": "4d59ef09dd8cc7581edb91f2961d9d18a59b4691"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
 			"Rev": "c84e1f8e3a7e322d497cd16c0e8a13c7e127baf3"
+		},
+		{
+			"ImportPath": "gopkg.in/tomb.v2",
+			"Rev": "14b3d72120e8d10ea6e6b7f87f7175734b1faab8"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

@@ -1,4 +1,4 @@
-package ssh
+package common
 
 import "golang.org/x/crypto/ssh/terminal"
 
