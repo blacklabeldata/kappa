@@ -15,6 +15,9 @@ type DatabaseConfig struct {
 	// ClusterName prevents two clusters from merging.
 	ClusterName string
 
+	// ExistingNodes is an array of nodes already in the cluster.
+	ExistingNodes []string
+
 	// Bootstrap determines if the server is bootstrapped into the cluster.
 	Bootstrap bool
 
