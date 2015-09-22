@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/blacklabeldata/kappa/server"
@@ -33,6 +34,7 @@ var ServerCmd = &cobra.Command{
 			LogOutput:             writer,
 			NodeName:              viper.GetString("NodeName"),
 			ClusterName:           viper.GetString("ClusterName"),
+			ExistingNodes:         strings.Split(viper.GetString("ClusterNodes"), ","),
 			Bootstrap:             viper.GetBool("Bootstrap"),
 			BootstrapExpect:       viper.GetInt("BootstrapExpect"),
 			AdminCertificateFile:  viper.GetString("AdminCert"),
@@ -41,6 +43,10 @@ var ServerCmd = &cobra.Command{
 			SSHBindAddress:        viper.GetString("SSHListen"),
 			SSHPrivateKeyFile:     viper.GetString("SSHKey"),
 			SSHConnectionDeadline: time.Second,
+			GossipBindAddr:        viper.GetString("GossipBindAddr"),
+			GossipBindPort:        viper.GetInt("GossipBindPort"),
+			GossipAdvertiseAddr:   viper.GetString("GossipAdvertiseAddr"),
+			GossipAdvertisePort:   viper.GetInt("GossipAdvertisePort"),
 		}
 
 		// Create server
@@ -51,7 +57,10 @@ var ServerCmd = &cobra.Command{
 		}
 
 		// Start server
-		svr.Start()
+		if err := svr.Start(); err != nil {
+			svr.Stop()
+			return
+		}
 
 		// Handle signals
 		sig := make(chan os.Signal, 1)
@@ -89,6 +98,7 @@ var (
 	HTTPListen          string
 	NodeName            string
 	ClusterName         string
+	ClusterNodes        string
 	Bootstrap           bool
 	BootstrapExpect     int
 	GossipBindAddr      string
@@ -111,6 +121,7 @@ func init() {
 	// Serf
 	ServerCmd.PersistentFlags().StringVarP(&NodeName, "node-name", "", "", "Node name")
 	ServerCmd.PersistentFlags().StringVarP(&ClusterName, "cluster", "", "", "Cluster name")
+	ServerCmd.PersistentFlags().StringVarP(&ClusterNodes, "nodes", "", "", "Comma delimited list of IPs or domains")
 	ServerCmd.PersistentFlags().BoolVarP(&Bootstrap, "bootstrap", "", false, "Bootstrap node")
 	ServerCmd.PersistentFlags().IntVarP(&BootstrapExpect, "bootstrap-expect", "", 0, "Bootstrap node")
 
@@ -161,6 +172,10 @@ func InitializeServerConfig(logger log.Logger) error {
 	viper.BindEnv("HTTPListen", "KAPPA_HTTP_LISTEN")
 
 	// Serf config
+	// ClusterNodes is a list of existing cluster nodes
+	viper.SetDefault("ClusterNodes", "")
+	viper.BindEnv("ClusterNodes", "KAPPA_CLUSTER_NODES")
+
 	// NodeName sets the server's name
 	viper.SetDefault("NodeName", "kappa-server")
 	viper.BindEnv("NodeName", "KAPPA_NODE_NAME")
@@ -230,6 +245,10 @@ func InitializeServerConfig(logger log.Logger) error {
 	}
 
 	// Serf config
+	if serverCmd.PersistentFlags().Lookup("nodes").Changed {
+		logger.Info("", "ClusterNodes", ClusterNodes)
+		viper.Set("ClusterNodes", ClusterNodes)
+	}
 	if serverCmd.PersistentFlags().Lookup("node-name").Changed {
 		logger.Info("", "NodeName", NodeName)
 		viper.Set("NodeName", NodeName)
