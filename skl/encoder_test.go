@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/swiftkick-io/namedtuple"
-	"github.com/swiftkick-io/namedtuple/schema"
+	"github.com/blacklabeldata/namedtuple"
+	"github.com/blacklabeldata/namedtuple/schema"
 )
 
 func TestEncoding(t *testing.T) {
