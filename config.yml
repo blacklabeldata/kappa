@@ -42,17 +42,20 @@ NodeName: kappa-server
 # in different clusters won't communicate with each other.
 ClusterName: kappa
 
+# ClusterNodes is a list of ip and port pairs
+ClusterNodes:
+
 # Bootstrap
-Bootstrap: false
+Bootstrap: true
 
 # GossipBindAddr sets the address for cluster gossip.
 GossipBindAddr: 0.0.0.0
 
 # GossipBindPort sets the port to gossip on.
-GossipBindPort: 7946
+GossipBindPort: 11922
 
 # GossipAdvertiseAddr sets what address to advertise to other nodes.
 GossipAdvertiseAddr:
 
 # GossipAdvertisePort sets what port to advertise to other nodes.
-GossipAdvertisePort: 7946
+GossipAdvertisePort: 11922
