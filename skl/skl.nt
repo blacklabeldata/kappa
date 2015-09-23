@@ -1,0 +1,85 @@
+package skl
+
+// StatusCode encodes a server response
+type StatusCode {
+
+    version 1 {
+
+        // Code is an enum for the status type
+        required uint16 code
+
+        // Message can accompany the status code
+        optional string message
+    }
+}
+
+// UseNamespaceRequest is used to encode UseNamespaceStatements and
+// changes the context of the user session
+type UseNamespaceRequest {
+
+    version 1 {
+
+        // Name of namespace
+        required string namespace
+    }
+}
+
+type UseNamespaceResponse {
+    version 1 {
+        required StatusCode status
+    }
+}
+
+
+// CreateNamespaceRequest encodes the CreateNamespaceStatement and
+// creates a new namespace
+type CreateNamespaceRequest {
+
+    version 1 {
+
+        // Name of namespace
+        required string namespace
+    }
+}
+
+type CreateNamespaceResponse {
+    version 1 {
+        required StatusCode status
+    }
+}
+
+
+// DropNamespaceRequest encodes the DropNamespaceStatement and
+// drops an existing namespace
+type DropNamespaceRequest {
+
+    version 1 {
+
+        // Name of namespace
+        required string namespace
+    }
+}
+
+type DropNamespaceResponse {
+    version 1 {
+        required StatusCode status
+    }
+}
+
+// ShowNamespacesRequest encodes the ShowNamespacesStatement
+type ShowNamespacesRequest {
+    version 1 {}
+}
+
+// ShowNamespacesResponse encodes a server response to a ShowNamespaces request
+type ShowNamespacesResponse {
+
+    version 1 {
+
+        // Status stores the server response
+        required StatusCode status
+
+        // Namespaces is a list of
+        required []string namespaces
+    }
+}
