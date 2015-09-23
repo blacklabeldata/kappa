@@ -89,7 +89,7 @@ func (s *Server) localMemberEvent(me serf.MemberEvent) {
 // localEvent is called when we receive an event on the local Serf
 func (s *Server) localEvent(event serf.UserEvent) {
 
-	// Handle only consul events
+	// Handle only kappa events
 	if !strings.HasPrefix(event.Name, KappaServiceName+":") {
 		return
 	}
