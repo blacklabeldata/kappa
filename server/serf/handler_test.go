@@ -130,6 +130,11 @@ func (suite *EventHandlerTestSuite) TestNodeReaped() {
 		[]serf.Member{suite.Member},
 	}
 
+	// Add NodeReaped handler
+	m := &MockMemberEventHandler{}
+	m.On("HandleMemberEvent", evt).Return()
+	suite.Handler.NodeReaped = m
+
 	// Add Reconciler
 	r := &MockReconciler{}
 	r.On("Reconcile", evt).Return()
@@ -137,6 +142,7 @@ func (suite *EventHandlerTestSuite) TestNodeReaped() {
 
 	// Process event
 	suite.Handler.HandleEvent(evt)
+	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
 	r.AssertCalled(suite.T(), "Reconcile", evt)
 }
 
@@ -165,4 +171,154 @@ func (suite *EventHandlerTestSuite) TestUserEvent() {
 	suite.Handler.HandleEvent(evt)
 	m.AssertCalled(suite.T(), "HandleUserEvent", evt)
 	r.AssertNotCalled(suite.T(), "Reconcile", evt)
+}
+
+// Test NodeUpdated messages are dispatched properly
+func (suite *EventHandlerTestSuite) TestNodeUpdated() {
+
+	// Create Member Event
+	evt := serf.MemberEvent{
+		serf.EventMemberUpdate,
+		[]serf.Member{suite.Member},
+	}
+
+	// Add NodeReaped handler
+	m := &MockMemberEventHandler{}
+	m.On("HandleMemberEvent", evt).Return()
+	suite.Handler.NodeUpdated = m
+
+	// Add Reconciler
+	r := &MockReconciler{}
+	r.On("Reconcile", evt).Return()
+	suite.Handler.Reconciler = r
+
+	// Process event
+	suite.Handler.HandleEvent(evt)
+	m.AssertCalled(suite.T(), "HandleMemberEvent", evt)
+	r.AssertCalled(suite.T(), "Reconcile", evt)
+}
+
+// Test QueryEvent messages are dispatched properly
+func (suite *EventHandlerTestSuite) TestQueryEvent() {
+
+	// Create Query
+	query := serf.Query{
+		LTime:   serf.LamportTime(0),
+		Name:    "Event",
+		Payload: make([]byte, 0),
+	}
+
+	// Add UserEvent handler
+	m := &MockQueryEventHandler{}
+	m.On("HandleQueryEvent", query).Return()
+	suite.Handler.QueryHandler = m
+
+	// Add Reconciler
+	r := &MockReconciler{}
+	r.On("Reconcile", query).Return()
+	suite.Handler.Reconciler = r
+
+	// Process event
+	suite.Handler.HandleEvent(&query)
+	m.AssertCalled(suite.T(), "HandleQueryEvent", query)
+	r.AssertNotCalled(suite.T(), "Reconcile", query)
+}
+
+// Test nil messages are not dispatched properly
+func (suite *EventHandlerTestSuite) TestNilEvent() {
+
+	// Add NodeJoined handler
+	m1 := &MockMemberEventHandler{}
+	suite.Handler.NodeJoined = m1
+
+	// Add NodeLeft handler
+	m2 := &MockMemberEventHandler{}
+	suite.Handler.NodeLeft = m2
+
+	// Add NodeFailed handler
+	m3 := &MockMemberEventHandler{}
+	suite.Handler.NodeFailed = m3
+
+	// Add NodeReaped handler
+	m4 := &MockMemberEventHandler{}
+	suite.Handler.NodeReaped = m4
+
+	// Add NodeUpdated handler
+	m5 := &MockMemberEventHandler{}
+	suite.Handler.NodeUpdated = m5
+
+	// Add UserEvent handler
+	u1 := &MockUserEventHandler{}
+	suite.Handler.UserEvent = u1
+
+	// Add UserEvent handler
+	q1 := &MockQueryEventHandler{}
+	suite.Handler.QueryHandler = q1
+
+	// Add Reconciler
+	r1 := &MockReconciler{}
+	suite.Handler.Reconciler = r1
+
+	// Process event
+	suite.Handler.HandleEvent(nil)
+	m1.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m2.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m3.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m4.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m5.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	u1.AssertNotCalled(suite.T(), "HandleUserEvent")
+	q1.AssertNotCalled(suite.T(), "HandleQueryEvent")
+	r1.AssertNotCalled(suite.T(), "Reconcile")
+}
+
+// Test unknown messages are not dispatched properly
+func (suite *EventHandlerTestSuite) TestUnknownEvent() {
+
+	// Add NodeJoined handler
+	m1 := &MockMemberEventHandler{}
+	suite.Handler.NodeJoined = m1
+
+	// Add NodeLeft handler
+	m2 := &MockMemberEventHandler{}
+	suite.Handler.NodeLeft = m2
+
+	// Add NodeFailed handler
+	m3 := &MockMemberEventHandler{}
+	suite.Handler.NodeFailed = m3
+
+	// Add NodeReaped handler
+	m4 := &MockMemberEventHandler{}
+	suite.Handler.NodeReaped = m4
+
+	// Add NodeUpdated handler
+	m5 := &MockMemberEventHandler{}
+	suite.Handler.NodeUpdated = m5
+
+	// Add UserEvent handler
+	u1 := &MockUserEventHandler{}
+	suite.Handler.UserEvent = u1
+
+	// Add UserEvent handler
+	q1 := &MockQueryEventHandler{}
+	suite.Handler.QueryHandler = q1
+
+	// Add Reconciler
+	r1 := &MockReconciler{}
+	suite.Handler.Reconciler = r1
+
+	// Process event
+	t1 := &MockEvent{Name: "UnknownType", Type: serf.EventType(-1)}
+	t1.On("EventType").Return()
+	suite.Handler.HandleEvent(t1)
+
+	// Test Assertions
+	t1.AssertCalled(suite.T(), "EventType")
+	m1.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m2.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m3.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m4.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	m5.AssertNotCalled(suite.T(), "HandleMemberEvent")
+	u1.AssertNotCalled(suite.T(), "HandleUserEvent")
+	q1.AssertNotCalled(suite.T(), "HandleQueryEvent")
+	r1.AssertNotCalled(suite.T(), "Reconcile")
 }

@@ -21,6 +21,11 @@ type UserEventHandler interface {
 	HandleUserEvent(serf.UserEvent)
 }
 
+// QueryEventHandler handles Serf query events.
+type QueryEventHandler interface {
+	HandleQueryEvent(serf.Query)
+}
+
 // Reconciler is used to reconcile Serf events wilth an external process, like Raft.
 type Reconciler interface {
 	Reconcile(serf.MemberEvent)
@@ -28,17 +33,24 @@ type Reconciler interface {
 
 // SerfEventHandler is used to dispatch various Serf events to separate event handlers.
 type SerfEventHandler struct {
-	NodeJoined MemberEventHandler
-	NodeLeft   MemberEventHandler
-	NodeFailed MemberEventHandler
-	Reconciler Reconciler
-	UserEvent  UserEventHandler
-	Logger     log.Logger
+	NodeJoined   MemberEventHandler
+	NodeLeft     MemberEventHandler
+	NodeFailed   MemberEventHandler
+	NodeReaped   MemberEventHandler
+	NodeUpdated  MemberEventHandler
+	QueryHandler QueryEventHandler
+	Reconciler   Reconciler
+	UserEvent    UserEventHandler
+	Logger       log.Logger
 }
 
 // HandleEvent processes a generic Serf event and dispatches it to the appropriate
 // destination.
 func (s SerfEventHandler) HandleEvent(e serf.Event) {
+	if e == nil {
+		return
+	}
+
 	var reconcile bool
 	switch e.EventType() {
 
@@ -69,14 +81,28 @@ func (s SerfEventHandler) HandleEvent(e serf.Event) {
 	// If the event is a Reap event, reconcile event with persistent storage.
 	case serf.EventMemberReap:
 		reconcile = true
+		if s.NodeReaped != nil {
+			s.NodeReaped.HandleMemberEvent(e.(serf.MemberEvent))
+		}
 
 	// If the event is a user event, call UserEvent
 	case serf.EventUser:
 		if s.UserEvent != nil {
 			s.UserEvent.HandleUserEvent(e.(serf.UserEvent))
 		}
-	case serf.EventMemberUpdate: // Ignore
-	case serf.EventQuery: // Ignore
+
+	// If the event is an Update event, call NodeUpdated
+	case serf.EventMemberUpdate:
+		reconcile = true
+		if s.NodeUpdated != nil {
+			s.NodeUpdated.HandleMemberEvent(e.(serf.MemberEvent))
+		}
+
+	// If the event is a query, call Query Handler
+	case serf.EventQuery:
+		if s.QueryHandler != nil {
+			s.QueryHandler.HandleQueryEvent(*e.(*serf.Query))
+		}
 	default:
 		s.Logger.Warn("unhandled Serf Event: %#v", e)
 		return
