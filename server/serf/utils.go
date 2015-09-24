@@ -31,32 +31,31 @@ func GetRawEventName(name string) string {
 	return strings.TrimPrefix(name, KappaEventPrefix)
 }
 
-// IsKappaNode returns whether a node is a Kappa server as well as its cluster.
-func IsKappaNode(member serf.Member) (bool, string) {
+// ValidateNode returns whether a node is a Kappa server as well as its cluster.
+func ValidateNode(member serf.Member) (ok bool, role, cluster string) {
 
 	// Get role name
-	if role, ok := member.Tags["role"]; !ok {
-		return false, ""
-	} else if role != "kappa" {
-		return false, ""
+	if role, ok = member.Tags["role"]; !ok {
+		return false, "", ""
+	} else if role != "kappa-server" {
+		return false, "", ""
 	}
 
 	// Get cluster name
-	if name, ok := member.Tags["cluster"]; ok {
-		return ok, name
+	if cluster, ok = member.Tags["cluster"]; ok {
+		return true, role, cluster
 	}
-	return false, ""
+	return false, "", ""
 }
 
 // GetKappaServer should validate all the Serf tags for the given member and returns
 // NodeDetails and any that occured error.
 func GetKappaServer(m serf.Member) (n *NodeDetails, err error) {
 
-	// Get node cluster
-	cluster, ok := m.Tags["cluster"]
+	// Validate server node
+	ok, role, cluster := ValidateNode(m)
 	if !ok {
-		err = errors.New("error: member missing cluster tag")
-		return
+		return nil, errors.New("Invalid server node")
 	}
 
 	// Get node SSH port
@@ -80,18 +79,21 @@ func GetKappaServer(m serf.Member) (n *NodeDetails, err error) {
 	// Get SSH addr
 	addr := net.TCPAddr{IP: m.Addr, Port: p}
 
-	n = &NodeDetails{}
-	n.Name = m.Name
-	n.Cluster = cluster
-	n.SSHPort = p
-	n.Bootstrap = bootstrap
-	n.Addr = addr
+	n = &NodeDetails{
+		Name:      m.Name,
+		Role:      role,
+		Cluster:   cluster,
+		SSHPort:   p,
+		Bootstrap: bootstrap,
+		Addr:      addr,
+	}
 	return
 }
 
 // NodeDetails stores details about a single serf.Member
 type NodeDetails struct {
 	Name      string
+	Role      string
 	Cluster   string
 	SSHPort   int
 	Bootstrap bool
