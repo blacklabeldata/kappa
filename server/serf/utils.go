@@ -101,6 +101,12 @@ type NodeDetails struct {
 	Expect    int
 }
 
-func (n NodeDetails) String() string {
-	return fmt.Sprintf("%#v", n)
+func (n NodeDetails) String() (s string) {
+	// NodeDetails{Name: "somename", Role: "role", Cluster: "cluster", Addr: "127.0.0.1:9000"}
+	if b, err := n.Addr.IP.MarshalText(); err != nil {
+		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\"}", n.Name, n.Role, n.Cluster)
+	} else {
+		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%s\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
+	}
+	return
 }

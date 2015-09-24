@@ -1,6 +1,7 @@
 package serf
 
 import (
+	"fmt"
 	"net"
 	"testing"
 
@@ -162,4 +163,36 @@ func TestGetKappaServer_Bootstrap(t *testing.T) {
 	assert.Equal(t, 9000, node.SSHPort, "SSHPort should be 9000")
 	assert.Equal(t, true, node.Bootstrap, "Bootstrap should be true")
 	assert.Equal(t, net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 9000}, node.Addr, "Addr should be 127.0.0.1")
+}
+
+func TestNodeDetails_String(t *testing.T) {
+	n := NodeDetails{
+		Name:    "node-1",
+		Role:    "server",
+		Cluster: "kappa",
+		Addr:    net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 9000},
+		SSHPort: 9000,
+	}
+	b, err := n.Addr.IP.MarshalText()
+	assert.Nil(t, err)
+
+	// Test assertions
+	s := fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%s\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
+	assert.Equal(t, s, n.String())
+}
+
+func TestNodeDetails_StringError(t *testing.T) {
+	n := NodeDetails{
+		Name:    "node-1",
+		Role:    "server",
+		Cluster: "kappa",
+		Addr:    net.TCPAddr{IP: make([]byte, 1), Port: 9000},
+		SSHPort: 9000,
+	}
+	_, err := n.Addr.IP.MarshalText()
+	assert.NotNil(t, err)
+
+	// Test assertions
+	s := fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\"}", n.Name, n.Role, n.Cluster)
+	assert.Equal(t, s, n.String())
 }
