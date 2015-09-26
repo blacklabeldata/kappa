@@ -6,46 +6,59 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"strconv"
 
 	"github.com/hashicorp/serf/serf"
 )
 
-// ensurePath is used to make sure a path exists
-func ensurePath(path string, dir bool) error {
-	if !dir {
-		path = filepath.Dir(path)
-	}
-	return os.MkdirAll(path, 0755)
+const (
+
+	// KappaEventPrefix is pre-pended to a kappa event to distinguish it
+	KappaEventPrefix = "kappa-event:"
+)
+
+// GetKappaEventName computes the name of a kappa event
+func GetKappaEventName(name string) string {
+	return KappaEventPrefix + name
 }
 
-// isKappaNode returns whether a node is a Kappa server as well as its cluster.
-func isKappaNode(member serf.Member) (bool, string) {
+// IsKappaEvent checks if a serf event is a Kappa event
+func IsKappaEvent(name string) bool {
+	return strings.HasPrefix(name, KappaEventPrefix)
+}
+
+// GetRawEventName is used to get the raw kappa event name
+func GetRawEventName(name string) string {
+	return strings.TrimPrefix(name, KappaEventPrefix)
+}
+
+// ValidateNode returns whether a node is a Kappa server as well as its cluster.
+func ValidateNode(member serf.Member) (ok bool, role, cluster string) {
 
 	// Get role name
-	if role, ok := member.Tags["role"]; !ok {
-		return false, ""
-	} else if role != "kappa" {
-		return false, ""
+	if role, ok = member.Tags["role"]; !ok {
+		return false, "", ""
+	} else if role != "kappa-server" {
+		return false, "", ""
 	}
 
 	// Get cluster name
-	if name, ok := member.Tags["cluster"]; ok {
-		return ok, name
+	if cluster, ok = member.Tags["cluster"]; ok {
+		return true, role, cluster
 	}
-	return false, ""
+	return false, "", ""
 }
 
-// validateNode should validate all the Serf tags for the given member and returns
+// GetKappaServer should validate all the Serf tags for the given member and returns
 // NodeDetails and any that occured error.
-func getKappaServer(m serf.Member) (n *NodeDetails, err error) {
+func GetKappaServer(m serf.Member) (n *NodeDetails, err error) {
 
-	// Get node cluster
-	cluster, ok := m.Tags["cluster"]
+	// Validate server node
+	ok, role, cluster := ValidateNode(m)
 	if !ok {
-		err = errors.New("error: member missing cluster tag")
-		return
+		return nil, errors.New("Invalid server node")
 	}
 
 	// Get node SSH port
@@ -69,18 +82,21 @@ func getKappaServer(m serf.Member) (n *NodeDetails, err error) {
 	// Get SSH addr
 	addr := net.TCPAddr{IP: m.Addr, Port: p}
 
-	n = &NodeDetails{}
-	n.Name = m.Name
-	n.Cluster = cluster
-	n.SSHPort = p
-	n.Bootstrap = bootstrap
-	n.Addr = addr
+	n = &NodeDetails{
+		Name:      m.Name,
+		Role:      role,
+		Cluster:   cluster,
+		SSHPort:   p,
+		Bootstrap: bootstrap,
+		Addr:      addr,
+	}
 	return
 }
 
 // NodeDetails stores details about a single serf.Member
 type NodeDetails struct {
 	Name      string
+	Role      string
 	Cluster   string
 	SSHPort   int
 	Bootstrap bool
@@ -88,6 +104,20 @@ type NodeDetails struct {
 	Expect    int
 }
 
-func (n NodeDetails) String() string {
-	return fmt.Sprintf("%#v", n)
+func (n NodeDetails) String() (s string) {
+	// NodeDetails{Name: "somename", Role: "role", Cluster: "cluster", Addr: "127.0.0.1:9000"}
+	if b, err := n.Addr.IP.MarshalText(); err != nil {
+		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\"}", n.Name, n.Role, n.Cluster)
+	} else {
+		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%s\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
+	}
+	return
+}
+
+// ensurePath is used to make sure a path exists
+func ensurePath(path string, dir bool) error {
+	if !dir {
+		path = filepath.Dir(path)
+	}
+	return os.MkdirAll(path, 0755)
 }
