@@ -236,13 +236,10 @@ func (s *Server) setupSerf() (*serf.Serf, error) {
 
 	conf.NodeName = s.config.NodeName
 	conf.MemberlistConfig.BindAddr = s.config.GossipBindAddr
-	s.logger.Info("local node", "BindAddr", conf.MemberlistConfig.BindAddr)
 	conf.MemberlistConfig.BindPort = s.config.GossipBindPort
-	s.logger.Info("local node", "BindPort", conf.MemberlistConfig.BindPort)
 	conf.MemberlistConfig.AdvertiseAddr = s.config.GossipAdvertiseAddr
-	s.logger.Info("local node", "AdvertiseAddr", conf.MemberlistConfig.AdvertiseAddr)
 	conf.MemberlistConfig.AdvertisePort = s.config.GossipAdvertisePort
-	s.logger.Info("local node", "AdvertisePort", conf.MemberlistConfig.AdvertisePort)
+	s.logger.Info("Gossip", "BindAddr", conf.MemberlistConfig.BindAddr, "BindPort", conf.MemberlistConfig.BindPort, "AdvertiseAddr", conf.MemberlistConfig.AdvertiseAddr, "AdvertisePort", conf.MemberlistConfig.AdvertisePort)
 
 	conf.Tags["id"] = id
 	conf.Tags["role"] = "kappa"
