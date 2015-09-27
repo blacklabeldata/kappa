@@ -177,7 +177,7 @@ func TestNodeDetails_String(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Test assertions
-	s := fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%s\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
+	s := fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%d\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
 	assert.Equal(t, s, n.String())
 }
 

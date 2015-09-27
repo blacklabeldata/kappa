@@ -95,13 +95,15 @@ func GetKappaServer(m serf.Member) (n *NodeDetails, err error) {
 
 // NodeDetails stores details about a single serf.Member
 type NodeDetails struct {
-	Name      string
-	Role      string
-	Cluster   string
-	SSHPort   int
-	Bootstrap bool
-	Addr      net.TCPAddr
-	Expect    int
+	Name       string
+	Role       string
+	Cluster    string
+	DataCenter string
+	Service    string
+	SSHPort    int
+	Bootstrap  bool
+	Addr       net.TCPAddr
+	Expect     int
 }
 
 func (n NodeDetails) String() (s string) {
@@ -109,7 +111,7 @@ func (n NodeDetails) String() (s string) {
 	if b, err := n.Addr.IP.MarshalText(); err != nil {
 		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\"}", n.Name, n.Role, n.Cluster)
 	} else {
-		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%s\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
+		s = fmt.Sprintf("NodeDetails{Name: \"%s\", Role: \"%s\", Cluster: \"%s\", Addr: \"%s:%d\"}", n.Name, n.Role, n.Cluster, string(b), n.SSHPort)
 	}
 	return
 }
