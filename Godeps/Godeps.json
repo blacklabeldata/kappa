@@ -19,6 +19,10 @@
 			"Rev": "61553a5437c9114e0e56ad1ffe0b9b48560cc8b7"
 		},
 		{
+			"ImportPath": "github.com/blacklabeldata/serfer",
+			"Rev": "66c791fb57bd79968a57dabc8bdfd6c5589a1f50"
+		},
+		{
 			"ImportPath": "github.com/blacklabeldata/sshh",
 			"Rev": "62e596348f1928fa629adb658c418e0fb3e79b35"
 		},
