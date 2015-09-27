@@ -15,7 +15,7 @@ func TestManagerSuite(t *testing.T) {
 }
 
 func TestNewNodeManager(t *testing.T) {
-	assert.NotNil(t, NewNodeManager())
+	assert.NotNil(t, NewNodeList())
 }
 
 // Define the suite, and absorb the built-in basic suite
@@ -30,6 +30,7 @@ func (suite *ManagerTestSuite) SetupSuite() {
 	suite.Details = NodeDetails{
 		Name:      "node",
 		Cluster:   "kappa",
+		Role:      "kappa-server",
 		SSHPort:   9022,
 		Bootstrap: false,
 		Addr:      net.TCPAddr{net.ParseIP("127.0.0.1"), 7946, ""},
@@ -37,7 +38,7 @@ func (suite *ManagerTestSuite) SetupSuite() {
 }
 
 func (suite *ManagerTestSuite) TestAddNode() {
-	mgr := &nodeManager{nodes: make(map[string]NodeDetails)}
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
 
 	// Add node
 	mgr.AddNode(suite.Details)
@@ -49,7 +50,7 @@ func (suite *ManagerTestSuite) TestAddNode() {
 }
 
 func (suite *ManagerTestSuite) TestRemoveNode() {
-	mgr := &nodeManager{nodes: make(map[string]NodeDetails)}
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
 
 	// Add node
 	mgr.AddNode(suite.Details)
@@ -63,7 +64,7 @@ func (suite *ManagerTestSuite) TestRemoveNode() {
 }
 
 func (suite *ManagerTestSuite) TestGetNodes() {
-	mgr := &nodeManager{nodes: make(map[string]NodeDetails)}
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
 
 	// Add node
 	mgr.AddNode(suite.Details)
@@ -71,6 +72,7 @@ func (suite *ManagerTestSuite) TestGetNodes() {
 	details := NodeDetails{
 		Name:      "node-2",
 		Cluster:   "kappa",
+		Role:      "kappa-server",
 		SSHPort:   9022,
 		Bootstrap: false,
 		Addr:      net.TCPAddr{net.ParseIP("127.0.0.1"), 7947, ""},
@@ -81,32 +83,94 @@ func (suite *ManagerTestSuite) TestGetNodes() {
 	nodes := mgr.GetNodes()
 
 	// Test expectations
-	d, ok := nodes[suite.Details.Addr.String()]
-	suite.True(ok)
-	suite.Equal(suite.Details, d)
-
-	d, ok = nodes[details.Addr.String()]
-	suite.True(ok)
-	suite.Equal(details, d)
+	var node1, node2 bool
+	for _, node := range nodes {
+		if node.Name == "node" {
+			node1 = true
+			suite.Equal(suite.Details, node)
+		} else if node.Name == "node-2" {
+			node2 = true
+			suite.Equal(details, node)
+		}
+	}
+	suite.True(node1)
+	suite.True(node2)
+	suite.Equal(2, len(nodes), "Nodes length should be 2")
 }
 
-func (suite *ManagerTestSuite) TestExists() {
-	mgr := &nodeManager{nodes: make(map[string]NodeDetails)}
+func (suite *ManagerTestSuite) TestSize() {
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
+
+	// Add node
+	suite.Equal(0, mgr.Size(), "Size should be 0")
+	mgr.AddNode(suite.Details)
+	suite.Equal(1, mgr.Size(), "Size should be 1")
+}
+
+func (suite *ManagerTestSuite) TestFindByRole() {
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
 
 	// Add node
 	mgr.AddNode(suite.Details)
+
 	details := NodeDetails{
 		Name:      "node-2",
 		Cluster:   "kappa",
+		Role:      "kappa",
 		SSHPort:   9022,
 		Bootstrap: false,
 		Addr:      net.TCPAddr{net.ParseIP("127.0.0.1"), 7947, ""},
 	}
 	mgr.AddNode(details)
 
-	// Test expectations
-	suite.True(mgr.Exists(suite.Details.Addr.String()))
-	suite.True(mgr.Exists(details.Addr.String()))
-	mgr.RemoveNode(details)
-	suite.False(mgr.Exists(details.Addr.String()))
+	// Filter nodes
+	nodes := mgr.FindByRole("kappa-server")
+	suite.Equal(1, len(nodes), "FindByRole should have only found one node")
+	suite.Equal(suite.Details, nodes[0], "FindByRole should have fould suite.Details")
+}
+
+func (suite *ManagerTestSuite) TestFindByDataCenter() {
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
+
+	// Add node
+	mgr.AddNode(suite.Details)
+
+	details := NodeDetails{
+		Name:       "node-2",
+		Cluster:    "kappa",
+		DataCenter: "dc1",
+		Role:       "kappa",
+		SSHPort:    9022,
+		Bootstrap:  false,
+		Addr:       net.TCPAddr{net.ParseIP("127.0.0.1"), 7947, ""},
+	}
+	mgr.AddNode(details)
+
+	// Filter nodes
+	nodes := mgr.FindByDataCenter("dc1")
+	suite.Equal(1, len(nodes), "FindByDataCenter should have only found one node")
+	suite.Equal(details, nodes[0])
+}
+
+func (suite *ManagerTestSuite) TestFindByService() {
+	mgr := &nodeList{nodes: make(map[string]NodeDetails)}
+
+	// Add node
+	mgr.AddNode(suite.Details)
+
+	details := NodeDetails{
+		Name:      "node-2",
+		Cluster:   "kappa",
+		Service:   "kappa-server",
+		Role:      "kappa",
+		SSHPort:   9022,
+		Bootstrap: false,
+		Addr:      net.TCPAddr{net.ParseIP("127.0.0.1"), 7947, ""},
+	}
+	mgr.AddNode(details)
+
+	// Filter nodes
+	nodes := mgr.FindByService("kappa-server")
+	suite.Equal(1, len(nodes), "FindByService should have only found one node")
+	suite.Equal(details, nodes[0])
 }
