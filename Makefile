@@ -5,7 +5,7 @@ CWD=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 export LOGXI=*=DBG
 export LOGXI_COLORS=key=green,value=magenta,message=cyan,TRC,DBG,WRN=red+h,INF=green,ERR=red+h,maxcol=1000
-export LOGXI_FORMAT=happy,t="2006-01-02 15:04:05.000000"
+export LOGXI_FORMAT=happy,t=2006-01-02 15:04:05.000000
 export GIN_MODE=release
 # export GODEP=$GOPATH/bin/godep
 
