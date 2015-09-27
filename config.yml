@@ -1,0 +1,61 @@
+
+# Data
+# -----------------
+
+# DataPath is the directory where all the data will be stored.
+DataPath: ./data
+
+# HTTP server
+# -----------------
+
+# HTTPListen is the addr and port to serve HTTPS traffic.
+HTTPListen: :19022
+
+# TLSCert is the certificate used for HTTPS.
+TLSCert:
+
+# TLSKey is the private key used for HTTPS.
+TLSKey:
+
+# SSH server
+# -----------------
+
+# SSHListen is the address and port to serve SSH traffic.
+SSHListen: :9022
+
+# SSHKey is the private key used by the SSH server.
+SSHKey: pki/private/localhost.key
+
+# CACert
+CACert: pki/ca.crt
+
+# AdminCert is the public key for the admin user.
+AdminCert: pki/public/admin.crt
+
+# Clustering
+# -----------------
+
+# NodeName is the name of the server. This does not need to be unique.
+NodeName: kappa-server
+
+# ClusterName is the name of the cluster for this node. Nodes
+# in different clusters won't communicate with each other.
+ClusterName: kappa
+
+# ClusterNodes is a list of ip and port pairs
+ClusterNodes:
+
+# Bootstrap
+Bootstrap: true
+
+# GossipBindAddr sets the address for cluster gossip.
+GossipBindAddr: 0.0.0.0
+
+# GossipBindPort sets the port to gossip on.
+GossipBindPort: 11922
+
+# GossipAdvertiseAddr sets what address to advertise to other nodes.
+GossipAdvertiseAddr:
+
+# GossipAdvertisePort sets what port to advertise to other nodes.
+GossipAdvertisePort: 11922

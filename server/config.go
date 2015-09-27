@@ -8,6 +8,24 @@ import (
 // DatabaseConfig contains all the information to start the Kappa server.
 type DatabaseConfig struct {
 
+	// NodeName is the name of the node. If it is empty, a name
+	// will be generated.
+	NodeName string
+
+	// ClusterName prevents two clusters from merging.
+	ClusterName string
+
+	// ExistingNodes is an array of nodes already in the cluster.
+	ExistingNodes []string
+
+	// Bootstrap determines if the server is bootstrapped into the cluster.
+	Bootstrap bool
+
+	BootstrapExpect int
+
+	// Build is the running server revision.
+	Build string
+
 	// AdminCertificateFile is the path to the admin user's certificate.
 	AdminCertificateFile string
 
@@ -29,4 +47,16 @@ type DatabaseConfig struct {
 
 	// SSHPrivateKeyFile refers to the private key file of the SSH server.
 	SSHPrivateKeyFile string
+
+	// GossipBindAddr
+	GossipBindAddr string
+
+	// GossipBindPort
+	GossipBindPort int
+
+	// GossipAdvertiseAddr
+	GossipAdvertiseAddr string
+
+	// GossipAdvertisePort
+	GossipAdvertisePort int
 }

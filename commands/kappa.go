@@ -42,7 +42,7 @@ var (
 )
 
 func init() {
-	KappaCmd.PersistentFlags().StringVarP(&ConfigPath, "config", "c", "", "Configuration file")
+	KappaCmd.PersistentFlags().StringVarP(&ConfigPath, "config", "c", "./", "Configuration file")
 	kappaCmd = KappaCmd
 
 	// for Bash auto-complete
@@ -54,19 +54,20 @@ func init() {
 
 // InitializeMainConfig sets up the config options for the kappa command
 func InitializeMainConfig(logger log.Logger) error {
-	viper.SetConfigFile("config")
+	if kappaCmd.PersistentFlags().Lookup("config").Changed {
+		logger.Info("", "ConfigPath", ConfigPath)
+		viper.Set("ConfigPath", ConfigPath)
+	}
+
+	// Setup config file support
+	viper.SetConfigName("config")
 	viper.AddConfigPath(ConfigPath)
 
 	// Read configuration file
 	logger.Info("Reading configuration file")
 	err := viper.ReadInConfig()
 	if err != nil {
-		logger.Warn("Unable to locate configuration file.")
-	}
-
-	if kappaCmd.PersistentFlags().Lookup("config").Changed {
-		logger.Info("", "ConfigPath", ConfigPath)
-		viper.Set("ConfigPath", ConfigPath)
+		logger.Warn("Unable to locate configuration file.", err)
 	}
 
 	return nil
@@ -95,5 +96,6 @@ func InitializeConfig(writer io.Writer) error {
 		logger.Warn("Failed to initialize new-cert command line flags")
 		return err
 	}
+
 	return nil
 }

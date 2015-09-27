@@ -11,12 +11,20 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/armon/go-metrics",
+			"Rev": "6c5fa0d8f48f4661c9ba8709799c88d425ad20f0"
+		},
+		{
 			"ImportPath": "github.com/blacklabeldata/namedtuple",
 			"Rev": "61553a5437c9114e0e56ad1ffe0b9b48560cc8b7"
 		},
 		{
+			"ImportPath": "github.com/blacklabeldata/serfer",
+			"Rev": "66c791fb57bd79968a57dabc8bdfd6c5589a1f50"
+		},
+		{
 			"ImportPath": "github.com/blacklabeldata/sshh",
-			"Rev": "8f5b15913156377068229817dba9908801be5b8b"
+			"Rev": "62e596348f1928fa629adb658c418e0fb3e79b35"
 		},
 		{
 			"ImportPath": "github.com/blacklabeldata/xbinary",
@@ -34,6 +42,19 @@
 		{
 			"ImportPath": "github.com/eliquious/lexer",
 			"Rev": "ce9541d1c70a08475d2c0fc8ce0bf3ecaf26f017"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-msgpack/codec",
+			"Rev": "fa3f63826f7c23912c15263591e65d54d080b458"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/memberlist",
+			"Rev": "a93fbd426dd831f5a66db3adc6a5ffa6f44cc60a"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/serf/serf",
+			"Comment": "v0.6.4-32-g768a3c4",
+			"Rev": "768a3c43b2e2b7bb18a70a41f75cbf8d75f506f5"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
