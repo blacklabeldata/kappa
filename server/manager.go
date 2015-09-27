@@ -1,4 +1,4 @@
-package serf
+package server
 
 import "sync"
 
