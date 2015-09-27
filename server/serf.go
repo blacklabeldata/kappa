@@ -1,8 +1,6 @@
 package server
 
 import (
-	"strings"
-
 	log "github.com/mgutz/logxi/v1"
 
 	"github.com/hashicorp/serf/serf"
@@ -15,7 +13,7 @@ const (
 )
 
 // SerfReconciler dispatches membership changes to Raft. If IsLeader is nil,
-// the server will panic. If ReconcileCh is nil, it will block forever.
+// the server will panic.
 type SerfReconciler struct {
 	IsLeader    func() bool
 	ReconcileCh chan serf.Member
@@ -45,35 +43,42 @@ func (s *SerfReconciler) Reconcile(me serf.MemberEvent) {
 	}
 }
 
-// SerfUserEventHandler handles both local and remote user events in Serf.
-type SerfUserEventHandler struct {
-	Logger      log.Logger
-	UserEventCh chan serf.UserEvent
-}
+// type LeaderElectionHandler interface {
+// 	HandleLeaderElection(string)
+// }
 
-// HandleUserEvent is called when a user event is received from both local and remote nodes.
-func (s *SerfUserEventHandler) HandleUserEvent(event serf.UserEvent) {
+// // SerfUserEventHandler handles both local and remote user events in Serf.
+// type SerfUserEventHandler struct {
+// 	Logger                log.Logger
+// 	UserEventCh           chan serf.UserEvent
+// 	LeaderElectionHandler LeaderElectionHandler
+// 	UserEventHandler      serfer.UserEventHandler
+// }
 
-	// Handle only kappa events
-	if !strings.HasPrefix(event.Name, KappaServiceName+":") {
-		return
-	}
+// // HandleUserEvent is called when a user event is received from both local and remote nodes.
+// func (s *SerfUserEventHandler) HandleUserEvent(event serf.UserEvent) {
 
-	switch name := event.Name; {
-	case name == LeaderEventName:
-		s.Logger.Info("kappa: New leader elected: %s", event.Payload)
+// 	// Handle only kappa events
+// 	if !strings.HasPrefix(event.Name, KappaServiceName+":") {
+// 		return
+// 	}
 
-	case IsKappaEvent(name):
-		event.Name = GetRawEventName(name)
-		s.Logger.Debug("kappa: user event: %s", event.Name)
+// 	switch name := event.Name; {
+// 	case name == LeaderEventName:
+// 		s.Logger.Info("kappa: New leader elected: %s", event.Payload)
+// 		s.LeaderElectionHandler.HandleLeaderElection(string(event.Payload))
 
-		// Send event to processing channel
-		s.UserEventCh <- event
+// 	case IsKappaEvent(name):
+// 		event.Name = GetRawEventName(name)
+// 		s.Logger.Debug("kappa: user event: %s", event.Name)
 
-	default:
-		s.Logger.Warn("kappa: Unhandled local event: %v", event)
-	}
-}
+// 		// Send event to processing channel
+// 		s.UserEventCh <- event
+
+// 	default:
+// 		s.Logger.Warn("kappa: Unhandled local event: %v", event)
+// 	}
+// }
 
 // SerfNodeJoinHandler processes cluster Join events.
 type SerfNodeJoinHandler struct {

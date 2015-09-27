@@ -155,7 +155,7 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 		NodeLeft:    &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-left")},
 		NodeFailed:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-fail")},
 		NodeReaped:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-reap")},
-		UserEvent:   &SerfUserEventHandler{log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
+		// UserEvent:   &SerfUserEventHandler{log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
 		Reconciler: &SerfReconciler{func() bool {
 
 			// TODO: Replace with Raft IsLeader check
