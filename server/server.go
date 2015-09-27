@@ -12,6 +12,7 @@ import (
 	"github.com/blacklabeldata/kappa/auth"
 	"github.com/blacklabeldata/kappa/datamodel"
 	"github.com/blacklabeldata/kappa/pkg/uuid"
+	"github.com/blacklabeldata/serfer"
 	"github.com/blacklabeldata/sshh"
 	"github.com/hashicorp/serf/serf"
 	log "github.com/mgutz/logxi/v1"
@@ -142,15 +143,36 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 		return
 	}
 
+	// Setup Serf handlers
+	mgr := NewNodeManager()
+	serfEventCh := make(chan serf.Event, 256)
+	reconcilerCh := make(chan serf.Member, 32)
+	userEventCh := make(chan serf.UserEvent, 256)
+	serfer := serfer.NewSerfer(serfEventCh, serfer.SerfEventHandler{
+		Logger:      log.NewLogger(c.LogOutput, "serf"),
+		NodeJoined:  &SerfNodeJoinHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-join")},
+		NodeUpdated: &SerfNodeUpdateHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-update")},
+		NodeLeft:    &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-left")},
+		NodeFailed:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-fail")},
+		NodeReaped:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-reap")},
+		UserEvent:   &SerfUserEventHandler{log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
+		Reconciler: &SerfReconciler{func() bool {
+
+			// TODO: Replace with Raft IsLeader check
+			return true
+		}, reconcilerCh},
+	})
+
 	// Create database server
 	s := &Server{
 		config:       c,
 		logger:       logger,
 		sshServer:    &sshServer,
+		serfer:       serfer,
 		localKappas:  make(map[string]*NodeDetails),
-		serfEventCh:  make(chan serf.Event, 256),
-		kappaEventCh: make(chan serf.UserEvent, 256),
-		reconcileCh:  make(chan serf.Member, 32),
+		serfEventCh:  serfEventCh,
+		kappaEventCh: userEventCh,
+		reconcileCh:  reconcilerCh,
 	}
 
 	// Create serf server
@@ -168,6 +190,8 @@ type Server struct {
 	logger    log.Logger
 	sshServer *sshh.SSHServer
 
+	serfer serfer.Serfer
+
 	// localKappas is used to track the known kappas
 	// in the cluster. Used to do leader forwarding.
 	localKappas map[string]*NodeDetails
@@ -184,12 +208,9 @@ func (s *Server) Start() error {
 	s.sshServer.Start()
 
 	// Start serf handler
-	s.t.Go(s.serfEventHandler)
+	s.serfer.Start()
 
 	// Join serf cluster
-	// if !s.config.Bootstrap && len(s.config.ExistingNodes) > 0 {
-	// addr, err := s.serf.Memberlist().LocalNode().Addr.MarshalText()
-	s.logger.Info("local node", "port", s.serf.LocalMember().Port)
 	s.logger.Info("Joining cluster", "nodes", s.config.ExistingNodes)
 
 	n, err := s.serf.Join(s.config.ExistingNodes, true)
@@ -208,14 +229,19 @@ func (s *Server) Stop() {
 	s.sshServer.Stop()
 
 	// Shutdown serf
+	s.logger.Info("Shutting down Serf server...")
 	s.serf.Leave()
 	s.serf.Shutdown()
 	<-s.serf.ShutdownCh()
 
+	// Stop serf event handlers
+	if err := s.serfer.Stop(); err != nil {
+		s.logger.Warn("error: stopping Serfer handlers", err.Error())
+	}
+
 	// Kill Serf handler
-	s.t.Kill(nil)
-	s.logger.Info("Shutting down Serf server...")
-	s.t.Wait()
+	// s.t.Kill(nil)
+	// s.t.Wait()
 }
 
 func (s *Server) setupSerf() (*serf.Serf, error) {
@@ -242,7 +268,7 @@ func (s *Server) setupSerf() (*serf.Serf, error) {
 	s.logger.Info("Gossip", "BindAddr", conf.MemberlistConfig.BindAddr, "BindPort", conf.MemberlistConfig.BindPort, "AdvertiseAddr", conf.MemberlistConfig.AdvertiseAddr, "AdvertisePort", conf.MemberlistConfig.AdvertisePort)
 
 	conf.Tags["id"] = id
-	conf.Tags["role"] = "kappa"
+	conf.Tags["role"] = "kappa-server"
 	conf.Tags["cluster"] = s.config.ClusterName
 	conf.Tags["build"] = s.config.Build
 	conf.Tags["port"] = fmt.Sprintf("%d", port)
