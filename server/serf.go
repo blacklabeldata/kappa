@@ -78,8 +78,8 @@ func (s *SerfUserEventHandler) HandleUserEvent(event serf.UserEvent) {
 // SerfNodeJoinHandler processes cluster Join events.
 type SerfNodeJoinHandler struct {
 	// ClusterManager ClusterManager
-	NodeManager NodeManager
-	Logger      log.Logger
+	Cluster NodeList
+	Logger  log.Logger
 }
 
 // HandleMemberEvent is used to handle join events on the serf cluster.
@@ -93,7 +93,7 @@ func (s *SerfNodeJoinHandler) HandleMemberEvent(me serf.MemberEvent) {
 		s.Logger.Info("kappa: adding server", details.String())
 
 		// Add to the local list as well
-		s.NodeManager.AddNode(*details)
+		s.Cluster.AddNode(*details)
 
 		// // If we still expecting to bootstrap, may need to handle this
 		// if s.config.BootstrapExpect != 0 {
@@ -103,9 +103,8 @@ func (s *SerfNodeJoinHandler) HandleMemberEvent(me serf.MemberEvent) {
 }
 
 type SerfNodeUpdateHandler struct {
-	// ClusterManager ClusterManager
-	NodeManager NodeManager
-	Logger      log.Logger
+	Cluster NodeList
+	Logger  log.Logger
 }
 
 // nodeJoin is used to handle join events on the both serf clusters
@@ -119,7 +118,7 @@ func (s *SerfNodeUpdateHandler) HandleMemberEvent(me serf.MemberEvent) {
 		s.Logger.Info("kappa: updating server", details.String())
 
 		// Add to the local list as well
-		s.NodeManager.AddNode(*details)
+		s.Cluster.AddNode(*details)
 
 		// // If we still expecting to bootstrap, may need to handle this
 		// if s.config.BootstrapExpect != 0 {
@@ -185,8 +184,8 @@ func (s *SerfNodeUpdateHandler) HandleMemberEvent(me serf.MemberEvent) {
 
 // SerfNodeLeaveHandler processes cluster leave events.
 type SerfNodeLeaveHandler struct {
-	NodeManager NodeManager
-	Logger      log.Logger
+	Cluster NodeList
+	Logger  log.Logger
 }
 
 // HandleMemberEvent is used to handle fail events in the Serf cluster.
@@ -199,6 +198,6 @@ func (s *SerfNodeLeaveHandler) HandleMemberEvent(me serf.MemberEvent) {
 		s.Logger.Info("kappa: removing server %s", details)
 
 		// Remove from the local list as well
-		s.NodeManager.RemoveNode(*details)
+		s.Cluster.RemoveNode(*details)
 	}
 }
