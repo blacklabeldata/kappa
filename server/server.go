@@ -144,7 +144,7 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 	}
 
 	// Setup Serf handlers
-	mgr := NewNodeManager()
+	mgr := NewNodeList()
 	serfEventCh := make(chan serf.Event, 256)
 	reconcilerCh := make(chan serf.Member, 32)
 	userEventCh := make(chan serf.UserEvent, 256)
