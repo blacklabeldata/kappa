@@ -2,6 +2,7 @@ package server
 
 import "sync"
 
+// NodeList maintains a list of remote nodes in the cluster.
 type NodeList interface {
 
 	// AddNode adds a new node to the cluster.
