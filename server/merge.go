@@ -17,18 +17,14 @@ type mergeDelegate struct {
 // in the same cluster and must have all the correct tags.
 func (md *mergeDelegate) NotifyMerge(members []*serf.Member) error {
 	for _, m := range members {
-		ok, name := isKappaNode(*m)
-		if ok {
-			if name != md.name {
-				return fmt.Errorf("Member '%s' part of wrong datacenter '%s'",
-					m.Name, name)
-			}
-			continue
-		}
-
-		_, err := getKappaServer(*m)
+		node, err := GetKappaServer(*m)
 		if err != nil {
 			return err
+		}
+
+		if node.Cluster != md.name {
+			return fmt.Errorf("Member '%s' part of wrong datacenter '%s'",
+				m.Name, node.Cluster)
 		}
 	}
 	return nil
