@@ -20,7 +20,7 @@ var ServerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Create logger
-		writer := log.NewConcurrentWriter(os.Stdout)
+		writer := log.NewConcurrentWriter(os.Stderr)
 		logger := log.NewLogger(writer, "kappa")
 
 		// Initialize config
