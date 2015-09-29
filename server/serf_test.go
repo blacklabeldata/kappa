@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net"
 	"testing"
 
 	"github.com/hashicorp/serf/serf"
@@ -10,46 +9,28 @@ import (
 )
 
 func TestReconciler(t *testing.T) {
-	var leaderCalled bool
 	reconcilerCh := make(chan serf.Member, 2)
 
 	// Create reconciler
 	reconciler := &SerfReconciler{
-		IsLeader: func() bool {
-			leaderCalled = true
-			return true
-		},
 		ReconcileCh: reconcilerCh,
 	}
 
-	// Create Member Event
-	evt := serf.MemberEvent{
-		serf.EventMemberJoin,
-		[]serf.Member{
-			serf.Member{
-				Name:   "node-1",
-				Addr:   net.ParseIP("127.0.0.1"),
-				Port:   9022,
-				Tags:   make(map[string]string),
-				Status: serf.StatusAlive,
-			},
-			serf.Member{
-				Name:   "node-2",
-				Addr:   net.ParseIP("127.0.0.1"),
-				Port:   9023,
-				Tags:   make(map[string]string),
-				Status: serf.StatusAlive,
-			}},
-	}
-
-	// Handle Event
-	reconciler.Reconcile(evt)
-	assert.True(t, leaderCalled, "IsLeader should have been called")
+	// Handle members
+	reconciler.Reconcile(serf.Member{
+		Name:   "node-1",
+		Status: serf.StatusAlive,
+	})
+	reconciler.Reconcile(serf.Member{
+		Name:   "node-2",
+		Status: serf.StatusAlive,
+	})
 
 	// Read reconcile events
 	select {
 	case m := <-reconcilerCh:
-		assert.Equal(t, evt.Members[0], m)
+		assert.Equal(t, "node-1", m.Name)
+		assert.Equal(t, serf.StatusAlive, m.Status)
 	default:
 		t.Fail()
 	}
@@ -57,48 +38,33 @@ func TestReconciler(t *testing.T) {
 	// Read second message
 	select {
 	case m := <-reconcilerCh:
-		assert.Equal(t, evt.Members[1], m)
+		assert.Equal(t, "node-2", m.Name)
+		assert.Equal(t, serf.StatusAlive, m.Status)
 	default:
 		t.Fail()
 	}
 }
 
 func TestReconcilerReap(t *testing.T) {
-	var leaderCalled bool
 	reconcilerCh := make(chan serf.Member, 2)
 
 	// Create reconciler
 	reconciler := &SerfReconciler{
-		IsLeader: func() bool {
-			leaderCalled = true
-			return true
-		},
 		ReconcileCh: reconcilerCh,
 	}
 
-	// Create Member Event
-	evt := serf.MemberEvent{
-		serf.EventMemberReap,
-		[]serf.Member{
-			serf.Member{
-				Name:   "node-1",
-				Status: serf.StatusNone,
-			},
-			serf.Member{
-				Name:   "node-2",
-				Status: serf.StatusNone,
-			}},
-	}
-
 	// Handle Event
-	reconciler.Reconcile(evt)
-	assert.True(t, leaderCalled, "IsLeader should have been called")
+	reconciler.Reconcile(serf.Member{
+		Name: "node-1",
+	})
+	reconciler.Reconcile(serf.Member{
+		Name: "node-2",
+	})
 
 	// Read reconcile events
 	select {
 	case m := <-reconcilerCh:
-		assert.Equal(t, evt.Members[0].Name, m.Name)
-		assert.Equal(t, StatusReap, m.Status)
+		assert.Equal(t, "node-1", m.Name)
 	default:
 		t.Fail()
 	}
@@ -106,45 +72,9 @@ func TestReconcilerReap(t *testing.T) {
 	// Read second message
 	select {
 	case m := <-reconcilerCh:
-		assert.Equal(t, evt.Members[1].Name, m.Name)
-		assert.Equal(t, StatusReap, m.Status)
+		assert.Equal(t, "node-2", m.Name)
 	default:
 		t.Fail()
-	}
-}
-
-func TestReconcilerNotLeader(t *testing.T) {
-	var leaderCalled bool
-	reconcilerCh := make(chan serf.Member, 2)
-
-	// Create reconciler
-	reconciler := &SerfReconciler{
-		IsLeader: func() bool {
-			leaderCalled = true
-			return false
-		},
-		ReconcileCh: reconcilerCh,
-	}
-
-	// Create Member Event
-	evt := serf.MemberEvent{
-		serf.EventMemberReap,
-		[]serf.Member{
-			serf.Member{
-				Name:   "node-1",
-				Status: serf.StatusNone,
-			}},
-	}
-
-	// Handle Event
-	reconciler.Reconcile(evt)
-	assert.True(t, leaderCalled, "IsLeader should have been called")
-
-	// Read reconcile events
-	select {
-	case <-reconcilerCh:
-		t.Fail()
-	default:
 	}
 }
 
