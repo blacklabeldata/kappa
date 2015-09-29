@@ -145,22 +145,42 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 
 	// Setup Serf handlers
 	mgr := NewNodeList()
-	serfEventCh := make(chan serf.Event, 256)
 	reconcilerCh := make(chan serf.Member, 32)
+	serfEventCh := make(chan serf.Event, 256)
 	userEventCh := make(chan serf.UserEvent, 256)
 	serfer := serfer.NewSerfer(serfEventCh, serfer.SerfEventHandler{
-		Logger:      log.NewLogger(c.LogOutput, "serf"),
-		NodeJoined:  &SerfNodeJoinHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-join")},
-		NodeUpdated: &SerfNodeUpdateHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-update")},
-		NodeLeft:    &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-left")},
-		NodeFailed:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-fail")},
-		NodeReaped:  &SerfNodeLeaveHandler{mgr, log.NewLogger(c.LogOutput, "serf:node-reap")},
-		// UserEvent:   &SerfUserEventHandler{log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
-		Reconciler: &SerfReconciler{func() bool {
+		Logger:            log.NewLogger(c.LogOutput, "serf"),
+		ServicePrefix:     "kappa",
+		ReconcileOnJoin:   true,
+		ReconcileOnLeave:  true,
+		ReconcileOnFail:   true,
+		ReconcileOnUpdate: true,
+		ReconcileOnReap:   true,
+		NodeJoined: &SerfNodeJoinHandler{
+			mgr, log.NewLogger(c.LogOutput, "serf:node-join")},
+		NodeUpdated: &SerfNodeUpdateHandler{
+			mgr, log.NewLogger(c.LogOutput, "serf:node-update")},
+		NodeLeft: &SerfNodeLeaveHandler{
+			mgr, log.NewLogger(c.LogOutput, "serf:node-left")},
+		NodeFailed: &SerfNodeLeaveHandler{
+			mgr, log.NewLogger(c.LogOutput, "serf:node-fail")},
+		NodeReaped: &SerfNodeLeaveHandler{
+			mgr, log.NewLogger(c.LogOutput, "serf:node-reap")},
+		UserEvent: &SerfUserEventHandler{
+			log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
+		LeaderElectionHandler: &SerfUserEventHandler{
+			log.NewLogger(c.LogOutput, "serf:leader-election"), userEventCh},
+		UnknownEventHandler: &SerfUserEventHandler{
+			log.NewLogger(c.LogOutput, "serf:unknown-event"), userEventCh},
+		Reconciler: &SerfReconciler{reconcilerCh},
+		IsLeader: func() bool {
 
 			// TODO: Replace with Raft IsLeader check
 			return true
-		}, reconcilerCh},
+		},
+		IsLeaderEvent: func(evt string) bool {
+			return evt == "kappa:new-leader"
+		},
 	})
 
 	// Create database server

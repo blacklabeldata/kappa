@@ -15,70 +15,31 @@ const (
 // SerfReconciler dispatches membership changes to Raft. If IsLeader is nil,
 // the server will panic.
 type SerfReconciler struct {
-	IsLeader    func() bool
 	ReconcileCh chan serf.Member
 }
 
 // Reconcile is used to reconcile Serf events with the strongly
 // consistent store if we are the current leader
-func (s *SerfReconciler) Reconcile(me serf.MemberEvent) {
-	// Do nothing if we are not the leader.
-	if !s.IsLeader() {
-		return
-	}
-
-	// Check if this is a reap event
-	isReap := me.EventType() == serf.EventMemberReap
-
-	// Queue the members for reconciliation
-	for _, m := range me.Members {
-		// Change the status if this is a reap event
-		if isReap {
-			m.Status = StatusReap
-		}
-		select {
-		case s.ReconcileCh <- m:
-		default:
-		}
+func (s *SerfReconciler) Reconcile(m serf.Member) {
+	select {
+	case s.ReconcileCh <- m:
+	default:
 	}
 }
 
-// type LeaderElectionHandler interface {
-// 	HandleLeaderElection(string)
-// }
+// SerfUserEventHandler handles both local and remote user events in Serf.
+type SerfUserEventHandler struct {
+	Logger      log.Logger
+	UserEventCh chan serf.UserEvent
+}
 
-// // SerfUserEventHandler handles both local and remote user events in Serf.
-// type SerfUserEventHandler struct {
-// 	Logger                log.Logger
-// 	UserEventCh           chan serf.UserEvent
-// 	LeaderElectionHandler LeaderElectionHandler
-// 	UserEventHandler      serfer.UserEventHandler
-// }
+// HandleUserEvent is called when a user event is received from both local and remote nodes.
+func (s *SerfUserEventHandler) HandleUserEvent(event serf.UserEvent) {
+	s.Logger.Debug("kappa: user event: %s", event.Name)
 
-// // HandleUserEvent is called when a user event is received from both local and remote nodes.
-// func (s *SerfUserEventHandler) HandleUserEvent(event serf.UserEvent) {
-
-// 	// Handle only kappa events
-// 	if !strings.HasPrefix(event.Name, KappaServiceName+":") {
-// 		return
-// 	}
-
-// 	switch name := event.Name; {
-// 	case name == LeaderEventName:
-// 		s.Logger.Info("kappa: New leader elected: %s", event.Payload)
-// 		s.LeaderElectionHandler.HandleLeaderElection(string(event.Payload))
-
-// 	case IsKappaEvent(name):
-// 		event.Name = GetRawEventName(name)
-// 		s.Logger.Debug("kappa: user event: %s", event.Name)
-
-// 		// Send event to processing channel
-// 		s.UserEventCh <- event
-
-// 	default:
-// 		s.Logger.Warn("kappa: Unhandled local event: %v", event)
-// 	}
-// }
+	// Send event to processing channel
+	s.UserEventCh <- event
+}
 
 // SerfNodeJoinHandler processes cluster Join events.
 type SerfNodeJoinHandler struct {
