@@ -168,8 +168,6 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 			mgr, log.NewLogger(c.LogOutput, "serf:node-reap")},
 		UserEvent: &SerfUserEventHandler{
 			log.NewLogger(c.LogOutput, "serf:user-events"), userEventCh},
-		LeaderElectionHandler: &SerfUserEventHandler{
-			log.NewLogger(c.LogOutput, "serf:leader-election"), userEventCh},
 		UnknownEventHandler: &SerfUserEventHandler{
 			log.NewLogger(c.LogOutput, "serf:unknown-event"), userEventCh},
 		Reconciler: &SerfReconciler{reconcilerCh},
@@ -177,9 +175,6 @@ func NewServer(c *DatabaseConfig) (server *Server, err error) {
 
 			// TODO: Replace with Raft IsLeader check
 			return true
-		},
-		IsLeaderEvent: func(evt string) bool {
-			return evt == "kappa:new-leader"
 		},
 	})
 
